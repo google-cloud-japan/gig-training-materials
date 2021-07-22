@@ -217,7 +217,7 @@ pip install apache-beam[gcp]
 
 #### Cloud Shell Editor のフォルダ
 左のフォルダペインで以下のフォルダを展開しておきましょう。
-`cloudshell_open > gcp-getting-started-lab-jp > gig > gig01-02`
+`cloudshell_open > gig-training-materials > gig01-02`
 
 
 ## データの取り込み

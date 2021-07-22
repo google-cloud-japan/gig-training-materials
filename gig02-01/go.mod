@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/gcp-getting-started-lab-jp/gig/gig02-01
+module github.com/google-cloud-japan/gig-training-materials/gig02-01
 
 go 1.16
 

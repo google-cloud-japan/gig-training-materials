@@ -262,7 +262,7 @@ gcloud config set project $GOOGLE_CLOUD_PROJECT
 - 作業用のディレクトリへ移動
 
 ```bash
-cd ~/cloudshell_open/gcp-getting-started-lab-jp/gig/gig02-01
+cd ~/cloudshell_open/gig-training-materials/gig02-01
 ```
 
 - シークレットキーの参照先を設定
@@ -562,7 +562,7 @@ Go 言語の場合、 `go.mod` に Go パッケージの依存関係が記載さ
 今回のハンズオンで使う依存関係を全て書いた `go.mod` ファイルは既に `gig02-01` フォルダに配置済みです。
 
 ```
-module github.com/GoogleCloudPlatform/gcp-getting-started-lab-jp/gig/gig02-01
+module github.com/google-cloud-japan/gig-training-materials/gig02-01
 
 go 1.16
 
@@ -1364,7 +1364,7 @@ Container Registry コンソールから、イメージを選択して削除し�
 ### 編集者権限をつけた dev-key.json の削除
 
 ```bash
-rm ~/cloudshell_open/gcp-getting-started-lab-jp/gig/gig02-01/dev-key.json
+rm ~/cloudshell_open/gig-training-materials/gig02-01/dev-key.json
 ```
 
 ### サービスアカウントに付与したロールの取り消し

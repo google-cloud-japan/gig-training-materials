@@ -141,10 +141,10 @@ pwd
 以下のようなパスが表示されると思います。
 
 ```
-/home/<あなたのユーザー名>/cloudshell_open/gcp-getting-started-lab-jp/gig/gig02-02
+/home/<あなたのユーザー名>/cloudshell_open/gig-training-materials/gig02-02
 ```
 
-過去に他の G.I.G のハンズオンを同一環境で実施している場合、***gcp-getting-started-lab-jp-0*** や ***gcp-getting-started-lab-jp-1*** のように末尾に数字がついたディレクトリを、今回の gig2-2 用のディレクトリとしている場合があります。誤って過去のハンズオンで使ったディレクトリを使ってしまわぬよう、**今いる今回利用してるディレクトリを覚えておいてください。**
+過去に他の G.I.G のハンズオンを同一環境で実施している場合、***gig-training-materials-0*** や ***gig-training-materials-1*** のように末尾に数字がついたディレクトリを、今回の gig2-2 用のディレクトリとしている場合があります。誤って過去のハンズオンで使ったディレクトリを使ってしまわぬよう、**今いる今回利用してるディレクトリを覚えておいてください。**
 
 
 ## [解説] 4. Cloud Spanner 接続クライアントの準備
