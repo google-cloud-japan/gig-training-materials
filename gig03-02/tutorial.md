@@ -149,9 +149,9 @@ BQ_DATASET=lake_gig2
 BQ_TABLE=pubsub_sink
 ```
 
-### Google Cloud Storage(GCS) 
+## Google Cloud Storage(GCS) 
 
-#### バケットの作成
+### バケットの作成
 
 データが最初に格納されるGCSを設定していきましょう。
 まずは、make bucket コマンドを実行して、GCS のバケットを作成します。
@@ -160,35 +160,35 @@ BQ_TABLE=pubsub_sink
 gsutil mb -c regional -l us-central1 gs://{{project-id}}-gig2
 ```
 
-### Pub/Sub 
+## Pub/Sub 
 
-#### Topic作成
+### Topic作成
 
 ```bash
 gcloud pubsub topics create $TOPIC_ID
 ```
 
-### BigQuery
+## BigQuery
 
-#### データセットの作成
+### データセットの作成
 次に、処理されたデータが格納される先である、BigQueryのデータセットを作成します。
 
 ```bash
 bq mk lake_gig2
 ```
 
-#### テーブル作成
+### テーブル作成
 ```bash
 bq mk --table {{project-id}}:$BQ_DATASET.$BQ_TABLE message:STRING,timestamp:TIMESTAMP
 ```
 
-### Dataflow
-#### Pipeline Streaming Job を実行
+## Dataflow
+### Pipeline Streaming Job を実行
 ```bash
 gcloud dataflow jobs run ps-to-bq-my-topic --gcs-location gs://dataflow-templates-us-central1/latest/PubSub_to_BigQuery --region us-central1 --staging-location gs://{{project-id}}-gig2/temp --parameters inputTopic=projects/{{project-id}}/topics/$TOPIC_ID,outputTableSpec={{project-id}}:$BQ_DATASET.$BQ_TABLE
 ```
 
-#### 実行の確認（Dataflow）
+### 実行の確認（Dataflow）
 コンソール[Dataflow](https://console.cloud.google.com/dataflow?project={{project-id}})で、Job が実行されていることを確認してみます。
 
 Status が Succeeded となっていることを確認してください。
@@ -196,19 +196,14 @@ Status が Succeeded となっていることを確認してください。
 
 Dataflow の Job は、以下のコマンドでも確認できます。
 ```bash
-gcloud dataflow job
+gcloud dataflow jobs list
 ```
 
-### Pub/Sub TopicにPublishするためのプログラム実行(クライアントシミュレーター) 
+## Pub/Sub TopicにPublishするためのプログラム実行(クライアントシミュレーター) 
 
-#### Python 環境のセットアップ
+### Python 環境のセットアップ
 
-#### path 移動
-```bash
-cd pubsub
-```
-
-#### venv をインストール
+### venv をインストール
 ```bash
 sudo apt-get install -y python3-venv
 ```
@@ -222,22 +217,22 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-#### setuptools をアップグレード
+### setuptools をアップグレード
 ```bash
 pip install --upgrade pip setuptools
 ```
 
-#### apache-beam をインストール
+### google-cloud-pubsub をインストール
 ```bash
 pip install google-cloud-pubsub
 ```
 
-#### 以下のようにプログラムを実行
+### 以下のようにプログラムを実行
 ```bash
-python3 pub.py {{project-id}} $TOPIC_ID
+python3 pubsub/pubsub.py {{project-id}} $TOPIC_ID
 ```
 
-#### 実行の確認（BigQuery）
+## 実行の確認（BigQuery）
 Dataflow のフローチャートを見ると BigQuery への書き込みも成功しているかと思います。
 実際にコンソールから[BigQuery](https://console.cloud.google.com/bigquery?project={{project-id}}&p={{project-id}}&d=lake_gig2&page=dataset)から確認してみましょう。
 
@@ -315,12 +310,8 @@ bq mk lake_gig2
 
 ### Python 環境のセットアップ
 
-#### path 移動
-```bash
-cd dataflow
-```
-
 #### venv をインストール
+※シナリオ1で実施している場合は、"apache-beamをインストール"以降を実施
 ```bash
 sudo apt-get install -y python3-venv
 ```
@@ -358,11 +349,16 @@ pip install apache-beam[gcp]
 2. ファイルのヘッダー行を除外
 3. BigQuery に出力
 
+#### path 移動
+```bash
+cd dataflow
+```
+
 Dataflow では、１つのプログラムの実行単位を Job と呼びます。
 以下のコマンドは、`data_ingestion.py` を実行しています。
 
 ```bash
-python data_ingestion.py --project={{project_id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --input gs://{{project-id}}-gig2/data_files/head_usa_names.csv --save_main_session
+python data_ingestion.py --project={{project_id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --input gs://{{project-id}}-gig2/data_files/head_usa_names.csv --save_main_session --region us-central1
 ```
 
 #### 実行の確認（Dataflow）
@@ -396,7 +392,7 @@ Dataflow のフローチャートを見ると BigQuery への書き込みも成�
 ここでは、STRING だった `created_date` を DATE に、`number` を INTEGER に加工しています。
 
 ```bash
-python data_transformation.py --project={{project-id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --input gs://{{project-id}}-gig2/data_files/head_usa_names.csv --save_main_session
+python data_transformation.py --project={{project-id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --input gs://{{project-id}}-gig2/data_files/head_usa_names.csv --save_main_session --region us-central1
 ```
 
 #### 実行の確認
@@ -411,7 +407,7 @@ Dataflow の Job をスケジューリングするために、
 
 以下のコマンドでテンプレートが作成できます。
 ```bash
-python data_transformation_for_template.py --project={{project-id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --template_location gs://{{project-id}}-gig2/templates/DataTransformationTemplate --experiment=use_beam_bq_sink
+python data_transformation_for_template.py --project={{project-id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --template_location gs://{{project-id}}-gig2/templates/DataTransformationTemplate --experiment=use_beam_bq_sink --region us-central1
 ```
 
 コンソールで、[GCS のバケット](https://console.cloud.google.com/storage/browser/{{project-id}}?forceOnBucketsSortingFiltering=false&cloudshell=false&project={{project-id}})を確認してみましょう。
@@ -432,6 +428,7 @@ gcloud dataflow jobs run transform_from_template \
     --gcs-location gs://{{project-id}}-gig2/templates/DataTransformationTemplate \
     --parameters input=gs://{{project-id}}-gig2/data_files/head_usa_names.csv \
     --parameters output=lake_gig2.usa_names_transformed_from_template
+    --region us-central1
 ``` 
 
 コンソールで確認してみましょう
