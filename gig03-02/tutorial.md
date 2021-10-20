@@ -528,3 +528,9 @@ GCS のバケット削除
 ```bash
 gsutil rm -r gs://{{project-id}}-gig2/
 ```
+
+Dataflow Streaming Jobの停止
+```bash
+JOB_ID=$(gcloud dataflow jobs list --region us-central1 --status=active --filter="name=ps-to-bq-my-topic" | grep "JOB_ID" | cut -d" " -f2)
+[ -n "$JOB_ID" ] && gcloud dataflow jobs cancel $JOB_ID --region us-central
+```
