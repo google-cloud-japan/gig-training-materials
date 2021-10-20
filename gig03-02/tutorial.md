@@ -389,7 +389,7 @@ Dataflow のフローチャートを見ると BigQuery への書き込みも成�
 3. 読み取った行をオブジェクトに変換
 4. BigQuery に出力
 
-ここでは、STRING だった `created_date` を DATE に、`number` を INTEGER に加工しています。
+ここでは、STRING だった `year` を DATE に、`number` を INTEGER に加工しています。
 
 ```bash
 python data_transformation.py --project={{project-id}} --runner=DataflowRunner --staging_location=gs://{{project-id}}-gig2/test --temp_location gs://{{project-id}}-gig2/test --input gs://{{project-id}}-gig2/data_files/head_usa_names.csv --save_main_session --region us-central1
