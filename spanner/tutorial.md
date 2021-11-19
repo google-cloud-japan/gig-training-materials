@@ -59,48 +59,46 @@ FOREIGN KEY(item_id) REFERENCES items(item_id)
 INTERLEAVE IN PARENT players ON DELETE CASCADE;
 ```
 
-
 ## [演習] 2. Cloud Spanner インスタンスの作成
 
 現在 Cloud Shell と Editor の画面が開かれている状態だと思いますが、[Google Cloud のコンソール](https://console.cloud.google.com/) を開いていない場合は、コンソールの画面を開いてください。
 
-
 ### **Cloud Spanner インスタンスの作成**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/2-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4/public/2-1.png)
 
 1. ナビゲーションメニューから「Spanner」を選択
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/2-2.png)
+![](https://storage.cloud.google.com/egg-resources/egg4-2/public/2-2.png)
 
 2. 「インスタンスを作成」を選択
 
 ### **情報の入力**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/2-3.png)
+![](https://storage.googleapis.com/egg-resources/egg4/public/2-3.png)
 
 以下の内容で設定して「作成」を選択します。
 1. インスタンス名：dev-instance
 2. インスタンスID：dev-instance
 3. 「リージョン」を選択
 4. 「asia-northeast1 (Tokyo) 」を選択
-5. コンピューティング容量の割り当て： 100
+5. ノードの割り当て：1
 6. 「作成」を選択
 
 ### **インスタンスの作成完了**
 以下の画面に遷移し、作成完了です。
 どのような情報が見られるか確認してみましょう。
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/2-4.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/2-4.png)
 
 ### **スケールアウトとスケールインについて**
 
-Cloud Spanner インスタンスノード数を変更したい場合、編集画面を開いて「コンピューティング容量の割り当て」で簡単に変更できます。
+Cloud Spanner インスタンスノード数を変更したい場合、編集画面を開いてノードの割り当て数を変更することで、かんたんに行われます
 ノード追加であってもノード削減であっても、一切のダウンタイムなく実施することができます。
 
 なお補足ですが、たとえ 1 ノード構成であっても裏は多重化されており、単一障害点がありません。ノード数は可用性の観点ではなく、純粋に性能の観点でのみ増減させることができます。
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/2-5.png)
+![](https://storage.googleapis.com/egg-resources/egg4/public/2-5.png)
 
 ## [演習] 3. 接続用テスト環境作成 Cloud Shell 上で構築
 
@@ -108,28 +106,27 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 今回はハンズオンの冒頭で起動した Cloud Shell が開かれていると思います。今回のハンズオンで使うパスと、プロジェクト ID が正しく表示されていることを確認してください。以下のように、青文字のパスに続いて、かっこにくくられてプロジェクト ID が黄色文字で表示されています。このプロジェクト ID は各個人の環境でお使いのものに読み替えてください。
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/3-2.png)
+![](https://storage.googleapis.com/egg-resources/egg4/public/3-2.png)
 
 もしプロジェクトIDが表示されていない場合、以下の図の様に、青字のパスのみが表示されている状態だと思います。以下のコマンドを Cloud Shell で実行し、プロジェクトIDを設定してください。
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/3-3.png)
+![](https://storage.googleapis.com/egg-resources/egg4/public/3-3.png)
 
 ```bash
-gcloud config set project <今回使う Google Cloud のプロジェクト ID>
-``` 
+gcloud config set project {{project-id}}
+```
 
-
-続いて、環境変数 `PROJECT_ID` に、各自で利用しているプロジェクトのIDを格納しておきます。以下のコマンドを、Cloud Shell のターミナルで実行してください。
+続いて、環境変数 `GOOGLE_CLOUD_PROJECT` に、各自で利用しているプロジェクトのIDを格納しておきます。以下のコマンドを、Cloud Shell のターミナルで実行してください。
 
 ```bash
-export PROJECT_ID=$(gcloud config list project --format "value(core.project)")
+export GOOGLE_CLOUD_PROJECT=$(gcloud config list project --format "value(core.project)")
 ```
 
 以下のコマンドで、正しく格納されているか確認してください。
 echo の結果が空の場合、1つ前の手順で gcloud コマンドでプロジェクトIDを取得できていません。gcloud config set project コマンドで現在お使いのプロジェクトを正しく設定してください。
 
 ```bash
-echo $PROJECT_ID
+echo $GOOGLE_CLOUD_PROJECT
 ```
 
 また以下のコマンドで、現在いるディレクトリを確認してください。
@@ -144,8 +141,7 @@ pwd
 /home/<あなたのユーザー名>/cloudshell_open/gig-training-materials/spanner
 ```
 
-過去に他の G.I.G のハンズオンを同一環境で実施している場合、***gig-training-materials-0*** や ***gig-training-materials-1*** のように末尾に数字がついたディレクトリを、今回の spanner 用のディレクトリとしている場合があります。誤って過去のハンズオンで使ったディレクトリを使ってしまわぬよう、**今いる今回利用してるディレクトリを覚えておいてください。**
-
+過去に他の E.G.G のハンズオンを同一環境で実施している場合、***gig-training-materials-0*** や ***gig-training-materials-1*** のように末尾に数字がついたディレクトリを、今回用のディレクトリとしている場合があります。誤って過去のハンズオンで使ったディレクトリを使ってしまわぬよう、**今いる今回利用してるディレクトリを覚えておいてください。**
 
 ## [解説] 4. Cloud Spanner 接続クライアントの準備
 
@@ -173,7 +169,7 @@ Cloud Console の GUI または gcloud コマンドを利用する方法もあ�
 
 ### **Cloud Spanner に書き込みをするアプリケーションのビルド**
 
-まずはクライアント ライブラリを利用したアプリケーションを作成してみましょう。
+まずはクライアント ライブラリを利用した Web アプリケーションを作成してみましょう。
 
 Cloud Shell では、今回利用する `spanner` のディレクトリにいると思います。
 spanner というディレクトリがありますので、そちらに移動します。
@@ -188,68 +184,71 @@ cd spanner
 ls -la
 ```
 
-`addplayer.go` という名前のファイルが見つかります。
+`main.go` や `pkg/` という名前のファイルやディレクトリが見つかります。
 これは Cloud Shell の Editor でも確認することができます。
 
-`spanner/spanner/addplayer.go` を Editor から開いて中身を確認してみましょう。
+`spanner/spanner/main.go` を Editor から開いて中身を確認してみましょう。
 
 ```bash
-cloudshell edit addplayer.go
+cloudshell edit main.go
 ```
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/4-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/4-1.png)
 
 このアプリケーションは、今回作成しているゲームで、新規ユーザーを登録するためのアプリケーションです。
-実行すると自動的にユーザー ID が採番され、Cloud Spanner の players テーブルに、新規ユーザー情報をデフォルト値で書き込みます。
+実行すると Web サーバーが起動します。
+Web サーバーに HTTP リクエストを送ると、自動的にユーザー ID が採番され、Cloud Spanner の players テーブルに新規ユーザー情報を書き込みます。
 
 以下のコードが実際にその処理を行っている部分です。
 
 ```go
-func addNewPlayer(ctx context.Context, client *spanner.Client) error {
-	tblColumns := []string{"player_id", "name", "level", "money"} // Players Table Schema
-	randomid, _ := uuid.NewRandom() // Get a new Primary Key
-
-	// Insert a recode using mutation API
-	m := []*spanner.Mutation{
-		spanner.InsertOrUpdate("players", tblColumns, []interface{}{randomid.String(), "player-" + randomid.String(), 1, 100}),
-	}
-
-	_, err := client.Apply(ctx, m)
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	log.Printf(">> A new Player with the ID %v has been added!\n", randomid.String())
-	return nil
-}
+func (h *spanHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+        ...
+		p := NewPlayers()
+		// get player infor from POST request
+		err := GetPlayerBody(r, p)
+		if err != nil {
+			LogErrorResponse(err, w)
+			return
+		}
+		// use UUID for primary-key value
+		randomId, _ := uuid.NewRandom()
+		// insert a recode using mutation API
+		m := []*spanner.Mutation{
+			spanner.InsertOrUpdate("players", tblColumns, []interface{}{randomId.String(), p.Name, p.Level, p.Money}),
+		}
+		// apply mutation to cloud spanner instance
+		_, err = h.client.Apply(r.Context(), m)
+		if err != nil {
+			LogErrorResponse(err, w)
+			return
+		}
+		LogSuccessResponse(w, "A new Player with the ID %s has been added!\n", randomId.String())}
+        ...
 ```
-
 
 次にこの Go 言語で書かれたソースコードをビルドしてみましょう。
 
-次のコマンドを実行し、ビルドの準備をします。
+そして、次のコマンドでビルドをします。初回ビルド時は、依存ライブラリのダウンロードが行われるため、少し時間がかかります。
+1分程度でダウンロード及びビルドが完了します。
 
 ```bash
-go mod init addplayer
-```
-
-そして、次のコマンドを実行し、必要な依存ライブラリが自動的にダウンロードされます。
-
-```bash
-go mod tidy
-```
-
-最後に、次のコマンドでビルドをします。
-
-```bash
-go build addplayer.go
+go build -o player
 ```
 
 ビルドされたバイナリがあるか確認してみましょう。
-`addplayer` というバイナリが作られているはずです。これで Cloud Spanner に接続して、書き込みを行うアプリケーションができました。
+`player` というバイナリが作られているはずです。これで Cloud Spanner に接続して、書き込みを行うアプリケーションができました。
 
 ```bash
 ls -la
+```
+
+**Appendix) バイナリをビルドせずに動かす方法**
+
+次のコマンドで、バイナリをビルドせずにアプリケーションを動かすこともできます。
+
+```bash
+go run *.go
 ```
 
 ### **spanner-cli のインストール**
@@ -261,7 +260,7 @@ Google Cloud が提供しているわけではなく、Cloud Spanner Ecosystem �
 Cloud Shell のターミナルに、以下のコマンド入力し、spanner-cli の Linux 用のバイナリをインストールします。
 
 ```bash
-go get -u github.com/cloudspannerecosystem/spanner-cli
+go install github.com/cloudspannerecosystem/spanner-cli@latest
 ```
 
 ## [演習] 5. テーブルの作成
@@ -272,27 +271,25 @@ go get -u github.com/cloudspannerecosystem/spanner-cli
 
 1つの Cloud Spanner インスタンスには、複数のデータベースを作成することができます。
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/5-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-1.png)
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/5-2.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-2.png)
 
 1. dev-instnace を選択すると画面が遷移します
 2. データベースを作成を選択します
 
 ### **データベース名の入力**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/5-3.png)
-名前に「player-db」を入力して「次へ」を選択します。
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-3.png)
+名前に「player-db」を入力します。
 
 
 ### **データベーススキーマの定義**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/5-4.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-4.png)
 スキーマを定義する画面に遷移します。
 
-1. テキストとして編集のトグルボタンを選択すると、DDL を直接入力できるようになります。
-
-2. のエリアに、以下の DDL を直接貼り付けます。
+1. のエリアに、以下の DDL を直接貼り付けます。
 
 ```sql
 CREATE TABLE players (
@@ -317,38 +314,77 @@ FOREIGN KEY(item_id) REFERENCES items(item_id)
 INTERLEAVE IN PARENT players ON DELETE CASCADE;
 ```
 
-3. の作成を選択すると、テーブル作成が開始します。
+2. の作成を選択すると、テーブル作成が開始します。
 
 ### **データベースの作成完了**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/5-5.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-5.png)
 
 うまくいくと、データベースが作成されると同時に 3 つのテーブルが生成されています。
 
 ## [演習] 6. データの書き込み：アプリケーション
 
-### **アプリケーションから player データの追加**
+### **Web アプリケーションから player データの追加**
 
-先程ビルドした `addplayer` コマンドを、以下の引数で実行します。
+先程ビルドした `player` コマンドを実行します。
 
 ```bash
-./addplayer projects/${PROJECT_ID}/instances/dev-instance/databases/player-db
+export GOOGLE_CLOUD_PROJECT=$(gcloud config list project --format "value(core.project)")
+./player
 ```
 
-以下の様なログが出力されれば完了で、生成された ID を控えておきましょう。
+以下の様なログが出力されれば、Web サーバーが起動しています。
 
-ID 例：f016b937-c777-4806-86ec-1c7023d1bc55（左のIDは例であり、IDは毎回変わります）
+```bash
+2021/04/28 01:14:25 Defaulting to port 8080
+2021/04/28 01:14:25 Listening on port 8080
+```
 
-この ID はアプリケーションによって自動生成されたユーザー ID で、データベースの観点では、player テーブルの主キーになります。
+次のようなログが出力された場合は `GOOGLE_CLOUD_PROJECT` の環境変数が設定されていません。
+
+```bash
+2021/04/28 18:05:47 'GOOGLE_CLOUD_PROJECT' is empty. Set 'GOOGLE_CLOUD_PROJECT' env by 'export GOOGLE_CLOUD_PROJECT=<gcp project id>'
+```
+
+環境変数を設定してから再度実行してください。
+
+```bash
+export GOOGLE_CLOUD_PROJECT=$(gcloud config list project --format "value(core.project)")
+```
+
+または
+
+```bash
+GOOGLE_CLOUD_PROJECT={{project-id}} ./player
+```
+
+この Web サーバーは、特定のパスに対して、HTTP リクエストを受け付けると新規プレイヤー情報を登録・更新・削除します。
+それでは、Web サーバーに対して新規プレイヤー作成のリクエストを送ってみましょう。
+`player` を起動しているコンソールとは別タブで、以下のコマンドによる HTTP POST リクエストを送ります。
+
+```bash
+curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' localhost:8080/players
+```
+
+`curl` コマンドを送ると、次のような結果が返ってくるはずです。
+
+```bash
+A new Player with the ID 78120943-5b8e-4049-acf3-b6e070d017ea has been added!
+```
+
+もし **`invalid character '\\' looking for beginning of value`** というエラーが出た場合は、curl コマンド実行時に、バックスラッシュ(\\)文字を削除して改行せずに実行してみてください。
+
+この ID(`78120943-5b8e-4049-acf3-b6e070d017ea`) はアプリケーションによって自動生成されたユーザー ID で、データベースの観点では、player テーブルの主キーになります。
+以降の演習でも利用しますので、手元で生成された ID をメモなどに控えておきましょう。
 
 ### **メモ💡Cloud Spanner の主キーのひみつ**
 
 UUIDv4 を使ってランダムな ID を生成していますが、これは主キーを分散させるためにこのような仕組みを使っています。一般的な RDBMS では、主キーはわかりやすさのために連番を使うことが多いですが、Cloud Spanner は主キー自体をシャードキーのように使っており、主キーに連番を使ってしまうと、新しく生成された行が常に一番うしろのシャードに割り当てられてしまうからです。
 
-addplayer.go 中の以下のコードで UUID を生成し、主キーとして利用しています。
+main.go 中の以下のコードで UUID を生成し、主キーとして利用しています。
 
-```go
-randomid, _ := uuid.NewRandom()
+```bash
+randomId, _ := uuid.NewRandom()
 ```
 
 ちなみに Cloud Spanner では、このシャードのことを「スプリット」と呼んでいて、スプリットは必要に応じて自動的に分割されていきます。
@@ -358,58 +394,65 @@ randomid, _ := uuid.NewRandom()
 
 ### **GUI コンソールから player データ確認**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-0.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-1-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-1-2.png)
 
 1. 対象テーブル「players」を選択
 2. 「データ」タブを選択
-3. Cloud Console 上の「データ」タブから追加したレコードを確認することができます。
+3. Cloud Console 上の「データ」メニュー(左欄)から追加したレコードを確認することができます。
 
 ここからも今回生成された ID がわかります。
 
 
 ### **GUI コンソールから player_items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-2.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-2.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-3.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-4.png)
 
 続いて、データを書き込んでみます。この例では、生成されたプレイヤーに、アイテムを追加する想定です。
 
-1. 対象テーブル「player_items」を選択
-2. 「データ」タブを選択
-3. 「挿入」を選択
-
-
+1. データベース player-db: 概要を選択
+2. テーブル 「player_items」を選択
+3. メニュー(左欄)「データ」を選択
+4. 「挿入」ボタンを選択
 
 ### **外部キー制約による挿入失敗の確認**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-3.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-3.png)
 
 テーブルのカラムに合わせて値を入力します。
 
 - player_id：「データの書き込み - クラアントライブラリ」で控えた ID
- (例：f016b937-c777-4806-86ec-1c7023d1bc55)
+ (例：78120943-5b8e-4049-acf3-b6e070d017ea)
 - item_id：1
 - quantity：1
 
-入力したら「保存」を選択します。
+入力したら「実行」を選択します。
 以下のようなエラーが出るはずです。
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-4.png)
-
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-4.png)
 
 ### **GUI コンソールから items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-5.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-2.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-3.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-4.png)
 
 item データを書き込んでみます。この例では、ゲーム全体として新たなアイテムを追加する想定です。
 
-1. 対象テーブル「items」を選択
-2. 「データ」タブを選択
-3. 「挿入」を選択
+1. データベース player-db: 概要を選択
+2. テーブル 「items」を選択
+3. メニュー(左欄)「データ」を選択
+4. 「挿入」ボタンを選択
 
 
 ### **GUI コンソールから items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-6.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-6.png)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -417,60 +460,61 @@ item データを書き込んでみます。この例では、ゲーム全体と
 - name：薬草
 - price：50
 
-入力したら「保存」を選択します。
-
+入力したら「実行」を選択します。
 
 ### **GUI コンソールから player_items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-7.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-7.png)
 
-テーブルのカラムに合わせて値を入力します
-。
+テーブルのカラムに合わせて値を入力します。
+
 - player_id：「データの書き込み - クラアントライブラリ」で控えた ID
- (例：f016b937-c777-4806-86ec-1c7023d1bc55)
+ (例：78120943-5b8e-4049-acf3-b6e070d017ea)
 - item_id：1
 - quantity：1
 
-入力したら「保存」を選択します。
+入力したら「実行」を選択します。
 今度は成功するはずです。
-
-
 
 ### **GUI コンソールから player データの修正**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-8.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-1.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-2.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-3.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-4.png)
 
-1. 対象テーブル「players」を選択
-2. 「データ」タブを選択
-3. 追加されているユーザーのチェックボックスを選択
-4. 編集ボタンを選択
+1. データベース player-db: 概要を選択
+2. テーブル 「players」を選択
+3. メニュー(左欄)「データ」を選択
+4. 追加されているユーザーのチェックボックスを選択
+5. 「編集」ボタンを選択
  
 ### **GUI コンソールから player データの修正**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-9.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-9.png)
 
 テーブルのカラムに合わせて値を入力します。
 
 - name：テスター01
 
-入力したら「保存」を選択します。
+入力したら「実行」を選択します。
 このようにデータの修正も簡単に行なえます
 
 ## [演習] 6. データの書き込み： Cloud Console から SQL
 
 ### **SQL による items 及び player_items**
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-10.png)
+![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-10.png)
 
-1. 「クエリ」を選択
+1. メニュー(左欄)「クエリ」を選択
 2. 次ページの SQL を入力欄に貼り付け
-3. 「クエリを実行」を選択
+3. 「実行」を選択
 
-この様にすると、任意の SQL を実行できます。
+このように Cloud Console から任意の SQL を実行できます。
 
 ### **SQL による items 及び player_items の挿入**
 
-以下の SQL を「DDLステートメント」そのまま貼り付け、「クエリを実行」を選択してください。
+以下の SQL を「DDLステートメント」にそのまま貼り付け、「実行」を選択してください。
 
 ```sql
 INSERT INTO items (item_id, name, price)
@@ -478,17 +522,17 @@ VALUES (2, 'すごい薬草', 500);
 ```
 
 書き込みに成功すると、
-結果表に「1 行が挿入されました」と表示されます
+結果表に「1 行が挿入されました」と表示されます。
 
-同様に、以下の SQL を「DDLステートメント」そのまま貼り付け、「クエリを実行」を選択してください。
+以下の SQL の player_id(`78120943-5b8e-4049-acf3-b6e070d017ea` の部分) を変えてから、同様に「DDLステートメント」に貼り付け、「クエリを実行」を選択してください。
 
 ```sql
 INSERT INTO player_items (player_id, item_id, quantity)
-VALUES ('f016b937-c777-4806-86ec-1c7023d1bc55', 2, 5);
+VALUES ('78120943-5b8e-4049-acf3-b6e070d017ea', 2, 5);
 ```
 
 書き込みに成功すると、
-結果表に「1 行が挿入されました」と表示されます
+結果表に「1 行が挿入されました」と表示されます。
 
 ## [演習] 6. データの書き込み： spanenr-cli から SQL
 
@@ -497,10 +541,10 @@ VALUES ('f016b937-c777-4806-86ec-1c7023d1bc55', 2, 5);
 以下の通りコマンドを実行すると、Cloud Spanner に接続できます。
 
 ```bash
-spanner-cli -p $PROJECT_ID -i dev-instance -d player-db
+spanner-cli -p $GOOGLE_CLOUD_PROJECT -i dev-instance -d player-db
 ```
 
-![](https://storage.googleapis.com/egg-resources/egg3/public/6-11.png)
+![](https://storage.googleapis.com/egg-resources/egg4/public/6-11.png)
 
 例えば、以下のような SELECT 文を実行し、プレイヤーが所持しているアイテム一覧を表示してみましょう。
 
@@ -524,6 +568,32 @@ JOIN items ON player_items.item_id = items.item_id;
 
 [spanner-cli の GitHubリポジトリ](https://github.com/cloudspannerecosystem/spanner-cli) には、spanner-cli の使い方が詳しく乗っています。これを見ながら、Cloud Spanner に様々なクエリを実行してみましょう。
 
+### **Appendix) Web アプリの動かし方**
+
+* Player 新規追加
+```bash
+# playerId はこの後、自動で採番される
+curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' localhost:8080/players
+```
+
+* Player 一覧取得
+```bash
+curl localhost:8080/players
+```
+
+* Player 更新
+```bash
+# playerId は適宜変更すること
+curl -X PUT -d '{"playerId":"afceaaab-54b3-4546-baba-319fc7b2b5b0","name": "testPlayer1", "level": 2, "money": 200}' localhost:8080/players
+```
+
+* Player 削除
+```bash
+# playerId は適宜変更すること
+curl -X DELETE http://localhost:8080/players/afceaaab-54b3-4546-baba-319fc7b2b5b0
+```
+
 ## **Thank You!**
 
-以上で、今回の Cloud Spanner ハンズオンは完了です。あとはデータベースとして Cloud Spanner を使っていくだけです！
+以上で、今回の Cloud Spanner ハンズオンは完了です。
+あとはデータベースとして Cloud Spanner を使っていくだけです！
