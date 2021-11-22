@@ -597,3 +597,5 @@ curl -X DELETE http://localhost:8080/players/afceaaab-54b3-4546-baba-319fc7b2b5b
 
 以上で、今回の Cloud Spanner ハンズオンは完了です。
 あとはデータベースとして Cloud Spanner を使っていくだけです！
+
+ハンズオンを終了時、 Spanner インスタンスの削除を忘れないようにしましょう。インスタンスを選択後、右上の「インスタンスを削除」から削除することができます。
