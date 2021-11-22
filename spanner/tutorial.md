@@ -82,7 +82,7 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 2. インスタンスID：dev-instance
 3. 「リージョン」を選択
 4. 「asia-northeast1 (Tokyo) 」を選択
-5. ノードの割り当て：1
+5. コンピューティング容量の割り当て： 100
 6. 「作成」を選択
 
 ### **インスタンスの作成完了**
