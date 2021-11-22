@@ -184,7 +184,7 @@ cd spanner
 ls -la
 ```
 
-`main.go` や `pkg/` という名前のファイルやディレクトリが見つかります。
+`main.go` などのファイルが見つかります。
 これは Cloud Shell の Editor でも確認することができます。
 
 `spanner/spanner/main.go` を Editor から開いて中身を確認してみましょう。
