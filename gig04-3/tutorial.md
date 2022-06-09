@@ -229,3 +229,109 @@ LAST DEPLOYED AT: 2022-06-09T04:38:29.682058Z
 ```
 
 7. Visit the [Cloud Run section](https://console.cloud.google.com/run) of the cloud console and explore the services.
+
+## 2. Scale-out ready
+>**Cloud native principle: cloud native apps are stateless, disposable and engineered for fast, automatic scaling.
+
+In this module you generate request traffic against the metrics-writer Cloud Run service to demonstrate autoscaling behavior. You then modify the service's configuration to see the impact on scaling behavior.
+
+![](./image/scale-out_img.png)
+
+### Cloud Runc container instance autoscaling
+
+In Cloud Run, each active [revision](https://cloud.google.com/run/docs/resource-model#revisions) is automatically scaled to the number of container instances needed to handle incoming requests. Refer to the [instance autoscaling](https://cloud.google.com/run/docs/about-instance-autoscaling) docs for more details.
+
+The number of instances created is impacted by:
+- The CPU utilization of existing instances (Targeting to keep serving instances to a 60% CPU utilization)
+- The [concurrency setting](https://cloud.google.com/run/docs/about-concurrency)
+- The [maximum number of container instances setting](https://cloud.google.com/run/docs/configuring/max-instances)
+- The [minumum number of container instances setting](https://cloud.google.com/run/docs/configuring/min-instances)
+
+### Generate request traffic
+
+1. Open Cloud Shell. If your previous shell was inactive for some time, you may need to reconnect. If so, after reconnecting, change into the repo directory and set the environment variables again.
+```bash
+cd ~/gig-training-materials/gig04-3 && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
+```
+
+2. List the Cloud Run services.
+```bash
+gcloud run services list
+```
+
+3. If you do not have one open already, one a web browser page to the url of the visualizer service.
+
+4. Use the [hey](https://github.com/rakyll/hey) command-line utility to generate request traffic against the service for 30 seconds, using 30 workers. The `hey` utility is already installed in Cloud Shell.
+```bash
+hey -z 30s -c 30 $WRITER_URL
+```
+
+5. Switch to the browser page that displays the visualizer web app. You see a graph plotted on the page. Cloud Run has rapidly scaled the number of active instances to serve the traffic volume.
+
+![](./image/visualizer_graph_2.png)
+
+6. Watch the graph until the end of 30 seconds. Cloud Run rapidly scales down to zero instances. Make a mental note of the peak number of active instances.
+
+7. Return to cloud shell. The `hey` utility outputs a summary of the load test. Look at the summary metrics and response time histogram.
+
+![](./image/hey_summary.png)
+
+8. Visit the [Cloud Run section](https://console.cloud.google.com/run) of the cloud console. Click into the `metrics-writer` service, and then select the 'Metrics' tab.
+
+<image />
+
+You see that Cloud Run provides some useful [monitoring metrics] out-of-the-box, such as request count, request latencies, container instance count, and more.
+
+9. Change the time period to '1 hour' and look at the 'container instance count' graph. The peak 'active' instances value should match approximately the value you saw in the visualizer graph. You need to wait approximately 3 minutes for the graphs to update.
+
+>Note: the Metrics tab in the Cloud Console provides the most accurate information about your Cloud Run service. This information comes from Cloud Monitoring. However, the metrics in the console take approximately 3 minutes to update. In this lab, you use the visualizer graph to show real-time scaling. The visualizer is for demo purposes only.
+
+### Update service concurrency
+
+Cloud Run provides a [concurrency]() setting that specifies the maximum number of requests that can be processed simultaneously by a given container instance.
+
+If your code cannot process parallel requests, set `concurrency=1`. Each container instance will handle only 1 request at a time, as in the diagram on the left.
+
+If your container can handle multiple requests simultaneously, set a higher concurrency. The specified concurrency value is a _maximum_ and Cloud Run might not spend as many requests to a given container instance if the CPU of the instance is already highly utilized. In the diagram on the right, the service is configured to handle a maximum of 80 simultaneous requests(the default). Cloud Run therefore sends all 3 requests to a single container instance.
+
+![](./image/concurrency_image.png)
+
+You deployed the metrics-writer service with an initial setting of `concurrency=1`. This means that each container instance will process only a single request at a time. You used this value to demonstrate Cloud Run's fast autoscaling. However, a simple service like this can probably handle a much higher concurrency. Here, you increase the concurrency setting and investigate the impact on scaling behavior.
+
+1. Update the metrics-writer service's concurrency setting. This creates a new revision for the service. All requests are routed to this new revision once it is ready.
+```bash
+gcloud run services update metrics-writer \
+  --concurrency 5
+```
+
+2. Rerun the command to generate request load
+```bash
+hey -z 30s -c 30 $WRITER_URL
+```
+
+3. Switch back to the browser page that displays the visualizer web app. You see another graph plotted on the page.
+
+![](./image/visualizer_graph_3.png)
+
+4. Inspect the `hey` output summary.
+
+![](./image/hey_summary_2.png)
+
+### Update service max-instances configuration
+
+Here, you use the [maximum container instances]() setting to limit the scaling of your service in response to incoming requests. Use this setting as a way to control your costs or to limit the number of connections to a backing service, such as to a database.
+
+1. Update the metrics-writer service's max-instances setting
+```bash
+gcloud run services update metrics-writer \
+  --max-instances 5
+```
+
+2. Rerun the command to generate request load
+```bash
+hey -z 30s -c 30 $WRITER_URL
+```
+
+3. Switch back to the browser page that displays the visualizer web app. You see another graph plotted on the page.
+
+4. Inspect the `hey` output summary. How does it compare to the previous output?
