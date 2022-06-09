@@ -15,7 +15,7 @@ variable "project_id" {
 }
 
 variable "region" {
-  default = "asia-northeast2"
+  default = "asia-northeast1"
 }
 
 variable "run_service" {
