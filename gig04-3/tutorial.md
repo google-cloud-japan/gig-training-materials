@@ -9,6 +9,92 @@
 <walkthrough-project-setup>
 </walkthrough-project-setup>
 
+### **プロジェクトの課金が有効化されていることを確認する**
+
+```bash
+gcloud beta billing projects describe {{project-id}} | grep billingEnabled
+```
+
+`billingEnabled` が **true** になっていることを確認してください。**false** の場合は、課金を有効化したプロジェクトを用意してください。
+
+<walkthrough-watcher-constant key="region" value="asia-northeast1"></walkthrough-watcher-constant>
+
+## **環境準備**
+
+<walkthrough-tutorial-duration duration=10></walkthrough-tutorial-duration>
+
+最初に、ハンズオンを進めるための環境準備を行います。
+
+下記の設定を進めていきます。
+
+- gcloud コマンドラインツール設定
+- Google Cloud 機能（API）有効化設定
+
+## **gcloud コマンドラインツール**
+
+Google Cloud は、コマンドライン（CLI）、GUI から操作が可能です。ハンズオンでは主に CLI を使い作業を行いますが、GUI で確認する URL も合わせて掲載します。
+
+### **1. gcloud コマンドラインツールとは?**
+
+gcloud コマンドライン インターフェースは、Google Cloud でメインとなる CLI ツールです。このツールを使用すると、コマンドラインから、またはスクリプトや他の自動化により、多くの一般的なプラットフォーム タスクを実行できます。
+
+たとえば、gcloud CLI を使用して、以下のようなものを作成、管理できます。
+
+- Google Compute Engine 仮想マシン
+- Google Kubernetes Engine クラスタ
+- Google Cloud SQL インスタンス
+
+**ヒント**: gcloud コマンドラインツールについての詳細は[こちら](https://cloud.google.com/sdk/gcloud?hl=ja)をご参照ください。
+
+### **2. gcloud から利用する Google Cloud のデフォルトプロジェクトを設定**
+
+gcloud コマンドでは操作の対象とするプロジェクトの設定が必要です。操作対象のプロジェクトを設定します。
+
+```bash
+gcloud config set project {{project-id}}
+```
+
+承認するかどうかを聞かれるメッセージがでた場合は、`承認` ボタンをクリックします。
+
+### **3. gcloud からの Cloud Run のデフォルト設定**
+
+Cloud Run の利用するリージョン、プラットフォームのデフォルト値を設定します。
+
+```bash
+gcloud config set run/region {{region}}
+gcloud config set run/platform managed
+```
+
+ここではリージョンを東京、プラットフォームをフルマネージドに設定しました。この設定を行うことで、gcloud コマンドから Cloud Run を操作するときに毎回指定する必要がなくなります。
+
+<walkthrough-footnote>CLI（gcloud）で利用するプロジェクトの指定、Cloud Run のデフォルト値の設定が完了しました。次にハンズオンで利用する機能（API）を有効化します。</walkthrough-footnote>
+
+## **参考: Cloud Shell の接続が途切れてしまったときは?**
+
+一定時間非アクティブ状態になる、またはブラウザが固まってしまったなどで `Cloud Shell` が切れてしまう、またはブラウザのリロードが必要になる場合があります。その場合は以下の対応を行い、チュートリアルを再開してください。
+
+### **1. チュートリアル資材があるディレクトリに移動する**
+
+```bash
+cd ~/gcp-getting-started-cloudrun
+```
+
+### **2. チュートリアルを開く**
+
+```bash
+teachme tutorial.md
+```
+
+### **3. gcloud のデフォルト設定**
+
+```bash
+gcloud config set project {{project-id}}
+gcloud config set run/region {{region}}
+gcloud config set run/platform managed
+```
+
+途中まで進めていたチュートリアルのページまで `Next` ボタンを押し、進めてください。
+
 ## [解説] ハンズオンの内容
 
 ### **概要**
@@ -151,6 +237,7 @@ Metrics: id=7229f512, activeRequests=0,  requestsSinceLast=0
 6. Stop the locally running container using control-c.
 
 ### Deploy the initial architecture
+
 1. Deploy the `metrics-writer` app to Cloud Run. You use a prebuild container image from a Google Artifact Registry.
 ```bash
 gcloud run deploy metrics-writer \
@@ -252,7 +339,7 @@ The number of instances created is impacted by:
 
 1. Open Cloud Shell. If your previous shell was inactive for some time, you may need to reconnect. If so, after reconnecting, change into the repo directory and set the environment variables again.
 ```bash
-cd ~/gig-training-materials/gig04-3 && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
+cd ~/gig-training-materials/gig04-3/ && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
 ```
 
 2. List the Cloud Run services.
@@ -559,4 +646,268 @@ Requests to the service URL are rejected. You see a HTML page that describes a H
 4. Verify that you can still interact with the service via the load balancer.
 ```bash
 curl $LB_IP
+```
+
+## 4. Security shifts left
+
+>_**Cloud native principle**: Cloud native apps address security early, and use platform security features._
+
+In this task you assign a new identity to the metrics-writer service, and grant it limited permissions. You further restrict user access to the metrics-writer Cloud Run service.
+
+### Assign a dedicated service identity
+
+A Cloud Run revision uses a [service account]() as its [runtime identity](). A service account is a special kind of account used by an application, not a person. Application use service accounts to make [authorized API calls]().
+
+When your code uses [Google Cloud client libraries]() to interact with Google Cloud APIs, it automatically obtains and uses credentials from the runtime service account. This strategy is called ["Application Default Credentials"]().
+
+The following diagram describes the Application Default Credentials approach used when a metrics-writer instance writes to Firestore. The client libraries automatically fetch an ID token for the runtime service account and attach it to the Firestore requests. The Firestore API authenticates and authorises the request, verifying that the service account has appropriate IAM permissions to write to Firestore.
+
+![](./image/security_image.png)
+
+>By default, Cloud Run revisions use the Compute Engine default service account (PROJECT_NUMBER-compute@developer.gserviceaccount.com), which has the project Editor IAM [basic role](). This means that by default, your Cloud Run revisions have read and write access to all resources in your Google Cloud project.
+
+Google recommends  that you give each of your services a [dedicated identity]() by assigning it a user-managed service account instead of using a default service account. User-managed service accounts allow you to control access by granting a minimal set of permissions [using Identity and Access Management]().
+
+1. Open Cloud Shell. If your previous shell was inactive for some time, you may need to reconnect. If so, after reconnecting, change into the repo directory and set the environment variables again.
+```bash
+cd ~/gig-training-materials/gig04-3/ && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
+```
+
+2. Create a new service account
+```bash
+gcloud iam service-accounts create metrics-writer-sa \
+  --description "Runtime service account for metrics-writer service"
+```
+
+3. Assign the new service account to the metrics-writer service. This creates a new metrics-writer revision.
+```bash
+gcloud run services update metrics-writer \
+  --service-account metrics-writer-sa@$PROJECT_ID.iam.gserviceaccount.com
+```
+
+**Output (do not copy)**
+```
+OK Deploying... Done.
+  OK Creating Revision...
+Done.
+Service [metrics-writer] revision [metrics-writer-00009-vos] has been deployed and is serving 0 percent of traffic.
+```
+
+4. Route 100% of traffic to the new revision. Replace [REVISION_ID] with the name of the new revision from the previous command.
+```bash
+gcloud run services update-traffic metrics-writer --to-revisions [REVISION_ID]=100
+```
+
+5. Call the service via the load balancer, printing verbose output.
+```bash
+curl -v $LB_IP
+```
+
+You see a HTTP 503 error, and an "Instance not ready" message.
+
+**Output (do not copy)**
+```
+*   Trying 34.110.187.86:80...
+* Connected to 34.110.187.86 (34.110.187.86) port 80 (#0)
+> GET / HTTP/1.1
+> Host: 34.110.187.86
+> User-Agent: curl/7.74.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 503 Service Unavailable
+< content-type: text/plain; charset=utf-8
+< etag: W/"13-E9/U2/cQlxfYtpGiFJun9Uohjjc"
+< X-Cloud-Trace-Context: e3999db428f1de8a53d37e1b3b27424c;o=1
+< Date: Fri, 10 Jun 2022 04:47:26 GMT
+< Server: Google Frontend
+< Content-Length: 19
+< Via: 1.1 google
+<
+Instance not ready
+* Connection #0 to host 34.110.187.86 left intact
+```
+
+6. Visit the [Cloud Run section]() of the cloud console. Click into the metrics-writer service, and then select the 'Logs' tab.
+
+![](./image/metrics-writer_logs.png)
+
+You see a PERMISSION_DENIED error. Look at the error trace, and you see that the error is related to Firestore. The new service account you assigned as the runtime service account for the metrics-writer revision does not have appropriate permissions to write to Firestore.
+
+7. Return to Cloud Shell and grant an appropriate Firestore IAM role to the service account used as the metrics-writer runtime identity.
+```bash
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --role roles/datastore.user \
+  --member "serviceAccount:metrics-writer-sa@$PROJECT_ID.iam.gserviceaccount.com"
+```
+
+You see the updated IAM policy.
+
+**Output (do not copy)**
+```
+Updated IAM policy for project [gig4-3].
+bindings:
+...
+- members:
+  - serviceAccount:metrics-writer-sa@gig4-3.iam.gserviceaccount.com
+  role: roles/datastore.user
+...
+```
+
+8. Wait **1 minute** for the IAM permissions to propagate.
+
+9. Call the service again. You receive a successful response.
+```bash
+curl $LB_IP
+```
+
+You assigned a dedicated identity to the metrics-writer service, and granted that identity only the limited permissions it needs to operate correctly.
+
+### Add authentication
+
+You deployed the metrics-writer Cloud Run service with the `--allow-unauthenticated` flag. This flag makes the service URL publicly accessible on the internet. You also set [ingress rules]() to accept requests only from a Google Cloud load balancer, effectively disabling the metrics-writer service public URL.
+
+However, the service is still publicly accessible through the load balancer IP address. Anyone can call the metrics-writer service.
+
+In this section you use Cloud Run's built-in authentication and authorization features to accept requests only from known parties. When you enable authentication for a service, only identities that have been explicitly granted the [Cloud Run Invoker IAM role]()(`roles/run.invoker`) for that service are allowed to invoke the service.
+
+>Note: you typically use the Cloud Run Invoker role to grant permissions to service accounts, or to internal users or groups. You use a different approach for authenticating end users in a web or mobile app. See the [Authentication Overview]() docs for details.
+
+1. Print the IAM policy for the metrics-writer service.
+```bash
+gcloud run services get-iam-policy metrics-writer
+```
+
+You see that the `allUsers` identity has the `run.invoker` rolw. This means that anybody can invoke the service (public). This `allUsers` IAM policy is added to the service when you use the `--allow-unauthenticated` flag.
+
+**Output (do not copy)**
+```
+bindings:
+- members:
+  - allUsers
+  role: roles/run.invoker
+etag: BwXg-lSl5iI=
+version: 1
+```
+
+2. Deploy a new revision of the metrics-writer service. You specify the `--no-allow-unauthenticated` flag.
+```bash
+gcloud run deploy metrics-writer \
+  --no-allow-unauthenticated \
+  --image asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
+```
+
+3. Print the IAM policy for the metrics-writer service.
+```bash
+gcloud run services get-iam-policy metrics-writer
+```
+
+You see that the `allUsers` IAM policy is no longer present.
+
+**Output (do not copy)**
+```
+etag: BwXhEK-IySg=
+version: 1
+```
+
+4. Call the metrics-writer service via the load balancer.
+```bash
+curl $LB_IP
+```
+
+You see a HTTP 403 forbedden error. Only authenticated and authorized users may now call the service.
+
+**Output (do not copy)**
+```html
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>403 Forbidden</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Forbidden</h1>
+<h2>Your client does not have permission to get URL <code>/</code> from this server.</h2>
+<h2></h2>
+</body></html>
+```
+
+5. Set a shell variable for your logged in gcloud user
+```bash
+export USER=$(gcloud config get-value account); echo $USER
+```
+
+**Output (do not copy)**
+```
+Your active configuration is: [cloudshell-15211]
+somebody@somedomain.com
+```
+
+6. Grant the IAM invoker role to your user for the metrics-writer service,
+```bash
+gcloud run services add-iam-policy-binding metrics-writer \
+  --role roles/run.invoker --member "user:$USER"
+```
+
+The new IAM policy is output
+
+**Output (do not copy)**
+```
+Updated IAM policy for service [metrics-writer].
+bindings:
+- members:
+  - user:somebody@somedomain.com
+  role: roles/run.invoker
+etag: BwXhELhW-90=
+version: 1
+```
+
+7. Call the metrics-writer service via the load balancer.
+```bash
+curl $LB_IP
+```
+
+You still see a HTTP 403 forbidden error. This is because the request you submitted via `curl` does not have any identity information attached. Cloud Run cannot authenticate the request.
+
+8. Call the metrics-writer service again, but this time include an ID token in the request header. You use gcloud to generate an ID token for your Cloud Shell logged-in user. The load balancer passes the ID token through to Cloud Run.
+```bash
+curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" $LB_IP
+```
+
+The ID token allows Cloud Run to authenticate the user identity making the request, and then verify that the user has the appropriate `run.invoker` permission to invoke the service. The call succeeds. You see the label output.
+
+**Output (do not copy)**
+```
+Hello from green
+```
+
+## Congratulations!
+
+<walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
+
+You have now completed the lab.
+- You implemented some core cloud native principles using Cloud Run, Google Cloud's serverless container platform.
+- You deployed containerised web services, triggered fast autoscaling, manipulated network traffic and applied built-in security controls.
+- You learned that you can accelerate your cloud native application modernization journey using Cloud Run.
+
+デモで使った資材が不要な方は、次の手順でクリーンアップを行って下さい。
+
+## **クリーンアップ（プロジェクトを削除）**
+
+ハンズオン用に利用したプロジェクトを削除し、コストがかからないようにします。
+
+### **1. Google Cloud のデフォルトプロジェクト設定の削除**
+
+```bash
+gcloud config unset project
+```
+
+### **2. プロジェクトの削除**
+
+```bash
+gcloud projects delete $PROJECT_ID
+```
+
+### **3. ハンズオン資材の削除**
+
+```bash
+cd $HOME && rm -rf ./gig-training-materials
 ```
