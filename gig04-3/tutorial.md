@@ -78,8 +78,9 @@ Visualizer web app
 ### 環境のセットアップ
 1. `Cloud Shell` を開きます。
 
-2. このラボのスクリプトを含む git リポジトリをクローンします。 gcloud の承認を求められた場合は、承認してください。
+>Note: README の青い`OPEN IN GOOGLE CLOUD SHELL` ボタンから開始された場合は、すでにリポジトリはクローンされていますので、4 にスキップしてください。
 
+2. このラボのスクリプトを含む git リポジトリをクローンします。 gcloud の承認を求められた場合は、承認してください。
 ```bash
 git clone https://github.com/google-cloud-japan/gig-training-materials.git
 ```
@@ -88,7 +89,7 @@ git clone https://github.com/google-cloud-japan/gig-training-materials.git
 ```bash
 cd gig04-3
 ```
-<!-- シェルの中のリージョンを変更する必要あり <- done -->
+
 4. スクリプトを実行して、プロジェクト ID とデフォルトリージョンのシェル変数を設定します。
 ```bash
 source vars.sh
