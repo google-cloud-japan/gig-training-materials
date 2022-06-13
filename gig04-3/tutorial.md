@@ -590,65 +590,66 @@ curl $WRITER_URL
 curl $LB_IP
 ```
 
-## 4. Security shifts left
+## 4. [セキュリティのシフトレフト](https://cloud.google.com/architecture/devops/devops-tech-shifting-left-on-security)
 
->_**Cloud native principle**: Cloud native apps address security early, and use platform security features._
+>_**クラウドネイティブの原則**：クラウドネイティブアプリはセキュリティに早期に対応し、プラットフォームのセキュリティ機能を使用します。_
+>Note: 「シフトレフト」とは、セキュリティに関する問題がソフトウェア開発ライフサイクルの早い段階で対処されることを意味します（左から右のスケジュール図で左側に位置します）。
 
-In this task you assign a new identity to the metrics-writer service, and grant it limited permissions. You further restrict user access to the metrics-writer Cloud Run service.
+このタスクでは、新しい ID を metrics-writer サービスに割り当て、制限付きのアクセス許可を付与します。さらに、metrics-writer Cloud Run サービスへのユーザーアクセスを制限します。
 
-### Assign a dedicated service identity
+### 専用のサービス ID を割り当てる
 
-A Cloud Run revision uses a [service account]() as its [runtime identity](). A service account is a special kind of account used by an application, not a person. Application use service accounts to make [authorized API calls]().
+Cloud Run リビジョンは、 [サービスアカウント](https://cloud.google.com/iam/docs/service-accounts) を [ランタイム ID](https://cloud.google.com/run/docs/securing/service-identity) として使用します。サービスアカウントは、個人ではなく、アプリケーションによって使用される特別な種類のアカウントです。アプリケーションはサービスアカウントを使用して[許可されたAPI呼び出し](https://developers.google.com/identity/protocols/oauth2/service-account#authorizingrequests) を行います。
 
-When your code uses [Google Cloud client libraries]() to interact with Google Cloud APIs, it automatically obtains and uses credentials from the runtime service account. This strategy is called ["Application Default Credentials"]().
+コードが [Cloud クライアント ライブラリ](https://cloud.google.com/apis/docs/cloud-client-libraries) を使用して Google Cloud API と対話する場合、ランタイムサービスアカウントから資格情報を自動的に取得して使用します。この戦略は ["アプリケーションデフォルトクレデンシャル"](https://cloud.google.com/docs/authentication/production#providing_credentials_to_your_application) と呼ばれます。
 
-The following diagram describes the Application Default Credentials approach used when a metrics-writer instance writes to Firestore. The client libraries automatically fetch an ID token for the runtime service account and attach it to the Firestore requests. The Firestore API authenticates and authorises the request, verifying that the service account has appropriate IAM permissions to write to Firestore.
+次の図は、metrics-writer インスタンスが Firestore に書き込むときに使用されるアプリケーションのデフォルトの資格情報アプローチを示しています。クライアントライブラリは、ランタイムサービスアカウントの ID トークンを自動的にフェッチし、それを Firestore リクエストに添付します。 Firestore API はリクエストを認証および承認し、サービスアカウントに Firestore への書き込みに適切な IAM 権限があることを確認します。
 
 ![](./image/security_image.png)
 
->By default, Cloud Run revisions use the Compute Engine default service account (PROJECT_NUMBER-compute@developer.gserviceaccount.com), which has the project Editor IAM [basic role](). This means that by default, your Cloud Run revisions have read and write access to all resources in your Google Cloud project.
+>デフォルトでは、Cloud Runリビジョンは Compute Engine のデフォルトサービスアカウント（PROJECT_NUMBER-compute@developer.gserviceaccount.com）を使用します。このアカウントには、プロジェクト[編集者]（https://cloud.google.com/iam/docs/understanding-roles#basic）IAM ロールがあります。これは、デフォルトで、Cloud Run リビジョンが Google Cloud プロジェクトのすべてのリソースへの読み取りおよび書き込みアクセス権を持っていることを意味します。
 
-Google recommends  that you give each of your services a [dedicated identity]() by assigning it a user-managed service account instead of using a default service account. User-managed service accounts allow you to control access by granting a minimal set of permissions [using Identity and Access Management]().
+デフォルトのサービスアカウントを使用する代わりに、ユーザーが管理するサービスアカウントを割り当てることにより、各サービスに[専用 ID](https://cloud.google.com/run/docs/securing/service-identity#per-service-identity) を付与することをお勧めします。ユーザー管理のサービスアカウントを使用すると、[IAM を使用して](https://cloud.google.com/iam/docs/creating-managing-service-accounts) 最小限の権限セットを付与することでアクセスを制御できます。
 
-1. Open Cloud Shell. If your previous shell was inactive for some time, you may need to reconnect. If so, after reconnecting, change into the repo directory and set the environment variables again.
+1. Cloud Shell を開きます。以前のシェルがしばらく非アクティブだった場合は、再接続が必要になる場合があります。その場合は、再接続後、repo ディレクトリに移動し、環境変数を再設定します。
 ```bash
-cd ~/gig-training-materials/gig04-3/ && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
+cd ~/cloudshell_open/gig-training-materials/gig04-3/ && source vars.sh
 ```
 
-2. Create a new service account
+2. 新しいサービスアカウントを作成します。
 ```bash
 gcloud iam service-accounts create metrics-writer-sa \
   --description "Runtime service account for metrics-writer service"
 ```
 
-3. Assign the new service account to the metrics-writer service. This creates a new metrics-writer revision.
+3. 新しいサービスアカウントを metrics-writer サービスに割り当てます。これにより、新しい metrics-writer リビジョンが作成されます。
 ```bash
 gcloud run services update metrics-writer \
   --service-account metrics-writer-sa@$PROJECT_ID.iam.gserviceaccount.com
 ```
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 OK Deploying... Done.
   OK Creating Revision...
 Done.
 Service [metrics-writer] revision [metrics-writer-00009-vos] has been deployed and is serving 0 percent of traffic.
 ```
 
-4. Route 100% of traffic to the new revision. Replace [REVISION_ID] with the name of the new revision from the previous command.
+4. トラフィックの 100％ を新しいリビジョンにルーティングします。 [REVISION_ID] を前のコマンドの新しいリビジョンの名前に置き換えます。
 ```bash
 gcloud run services update-traffic metrics-writer --to-revisions [REVISION_ID]=100
 ```
 
-5. Call the service via the load balancer, printing verbose output.
+5. ロードバランサーを介してサービスを呼び出し、詳細を出力します。
 ```bash
 curl -v $LB_IP
 ```
 
-You see a HTTP 503 error, and an "Instance not ready" message.
+HTTP503エラーと "Instance not ready" というメッセージが表示されます。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 *   Trying 34.110.187.86:80...
 * Connected to 34.110.187.86 (34.110.187.86) port 80 (#0)
 > GET / HTTP/1.1
@@ -670,23 +671,23 @@ Instance not ready
 * Connection #0 to host 34.110.187.86 left intact
 ```
 
-6. Visit the [Cloud Run section]() of the cloud console. Click into the metrics-writer service, and then select the 'Logs' tab.
+6. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。メトリックライターサービスをクリックし、'ログ'タブを選択します。
 
 ![](./image/metrics-writer_logs.png)
 
-You see a PERMISSION_DENIED error. Look at the error trace, and you see that the error is related to Firestore. The new service account you assigned as the runtime service account for the metrics-writer revision does not have appropriate permissions to write to Firestore.
+PERMISSION_DENIEDエラーが表示されます。 エラートレースを見ると、エラーが Firestore に関連していることがわかります。 metrics-writer リビジョンのランタイムサービスアカウントとして割り当てた新しいサービスアカウントには、Firestore に書き込むための適切な権限がありません。
 
-7. Return to Cloud Shell and grant an appropriate Firestore IAM role to the service account used as the metrics-writer runtime identity.
+7. Cloud Shell に戻り、metrics-writer ランタイム ID として使用されるサービスアカウントに適切な Firestore IAM ロールを付与します。
 ```bash
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role roles/datastore.user \
   --member "serviceAccount:metrics-writer-sa@$PROJECT_ID.iam.gserviceaccount.com"
 ```
 
-You see the updated IAM policy.
+更新された IAM ポリシーが表示されます。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Updated IAM policy for project [gig4-3].
 bindings:
 ...
@@ -696,34 +697,34 @@ bindings:
 ...
 ```
 
-8. Wait **1 minute** for the IAM permissions to propagate.
+8. IAM 権限が伝播するまで**1分**待ちます。
 
-9. Call the service again. You receive a successful response.
+9. サービスを再度呼び出します。 正常な応答を受け取ります。
 ```bash
 curl $LB_IP
 ```
+専用の ID を metrics-writer サービスに割り当て、その ID に、正しく動作するために必要な制限された権限のみを付与しました。
 
-You assigned a dedicated identity to the metrics-writer service, and granted that identity only the limited permissions it needs to operate correctly.
+### 追加の認証
 
-### Add authentication
+`--allow-unauthenticated` フラグを使用して metrics-writer Cloud Run サービスをデプロイしました。このフラグにより​​、サービス URL がインターネット上で公開されます。また、[上り（内向き）の制限](https://cloud.google.com/run/docs/securing/ingress) を設定して、Google Cloud ロードバランサーからのリクエストのみを受け入れるようにし、metrics-writer サービスのパブリック URL を効果的に無効にします。
 
-You deployed the metrics-writer Cloud Run service with the `--allow-unauthenticated` flag. This flag makes the service URL publicly accessible on the internet. You also set [ingress rules]() to accept requests only from a Google Cloud load balancer, effectively disabling the metrics-writer service public URL.
+しかし、このサービスはまだロードバランサーの IP アドレスを介してパブリックにアクセスできます。誰でも metrics-writer サービスを呼び出すことができます。
 
-However, the service is still publicly accessible through the load balancer IP address. Anyone can call the metrics-writer service.
+このセクションでは、Cloud Run の組み込みの認証および承認機能を使用して、既知の関係者からの要求のみを受け入れます。サービスの認証を有効にすると、そのサービスに対して[Cloud Run Invoker IAM ロール](https://cloud.google.com/run/docs/reference/iam/roles)(`roles / run.invoker`) が明示的に付与されている ID のみがサービスを呼び出すことができます。
 
-In this section you use Cloud Run's built-in authentication and authorization features to accept requests only from known parties. When you enable authentication for a service, only identities that have been explicitly granted the [Cloud Run Invoker IAM role]()(`roles/run.invoker`) for that service are allowed to invoke the service.
+>Note: 通常、Cloud Run Invoker の役割を使用して、サービスアカウント、または内部ユーザーやグループに権限を付与します。 Web またはモバイルアプリでエンドユーザーを認証するためには、別のアプローチを使用します。詳細については、[認証の概要](https://cloud.google.com/run/docs/authenticating/overview)のドキュメントを参照してください。
 
->Note: you typically use the Cloud Run Invoker role to grant permissions to service accounts, or to internal users or groups. You use a different approach for authenticating end users in a web or mobile app. See the [Authentication Overview]() docs for details.
-
-1. Print the IAM policy for the metrics-writer service.
+1. metrics-writer の IAM ポリシーを確認します。
 ```bash
 gcloud run services get-iam-policy metrics-writer
 ```
 
-You see that the `allUsers` identity has the `run.invoker` rolw. This means that anybody can invoke the service (public). This `allUsers` IAM policy is added to the service when you use the `--allow-unauthenticated` flag.
 
-**Output (do not copy)**
-```
+`allUsers` ID に`run.invoker` ロールがあることがわかります。これは、誰でもサービス(パブリック)を呼び出すことができることを意味します。この `allUsers` IAM ポリシーは、`--allow-unauthenticated` フラグを使用するとサービスに追加されます。
+
+**Output**
+```terminal
 bindings:
 - members:
   - allUsers
@@ -732,32 +733,32 @@ etag: BwXg-lSl5iI=
 version: 1
 ```
 
-2. Deploy a new revision of the metrics-writer service. You specify the `--no-allow-unauthenticated` flag.
+2. metrics-writer サービスの新しいリビジョンをデプロイします。 `--no-allow-unauthenticated` フラグを指定します。
 ```bash
 gcloud run deploy metrics-writer \
   --no-allow-unauthenticated \
   --image asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-3. Print the IAM policy for the metrics-writer service.
+3. metrics-writer の IAM ポリシーを確認します。
 ```bash
 gcloud run services get-iam-policy metrics-writer
 ```
 
-You see that the `allUsers` IAM policy is no longer present.
+`allUsers` IAM ポリシーが存在しなくなったことがわかります。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 etag: BwXhEK-IySg=
 version: 1
 ```
 
-4. Call the metrics-writer service via the load balancer.
+4. ロードバランサーを介して metrics-writer サービスを呼び出します。
 ```bash
 curl $LB_IP
 ```
 
-You see a HTTP 403 forbedden error. Only authenticated and authorized users may now call the service.
+HTTP 403 forbedden エラーが表示されます。これで、認証および承認されたユーザーのみがサービスを呼び出すことができます。
 
 **Output (do not copy)**
 ```html
@@ -772,27 +773,27 @@ You see a HTTP 403 forbedden error. Only authenticated and authorized users may 
 </body></html>
 ```
 
-5. Set a shell variable for your logged in gcloud user
+5. ログインしているユーザーのシェル変数を設定します。
 ```bash
 export USER=$(gcloud config get-value account); echo $USER
 ```
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Your active configuration is: [cloudshell-15211]
 somebody@somedomain.com
 ```
 
-6. Grant the IAM invoker role to your user for the metrics-writer service,
+6. IAM 呼び出し側の役割を、metrics-writer サービスのユーザーに付与します。
 ```bash
 gcloud run services add-iam-policy-binding metrics-writer \
   --role roles/run.invoker --member "user:$USER"
 ```
 
-The new IAM policy is output
+新しいIAMポリシーが出力されます。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Updated IAM policy for service [metrics-writer].
 bindings:
 - members:
@@ -802,33 +803,32 @@ etag: BwXhELhW-90=
 version: 1
 ```
 
-7. Call the metrics-writer service via the load balancer.
+7. ロードバランサーを介して metrics-writer サービスを呼び出します。
 ```bash
 curl $LB_IP
 ```
 
-You still see a HTTP 403 forbidden error. This is because the request you submitted via `curl` does not have any identity information attached. Cloud Run cannot authenticate the request.
+まだ HTTP 403 forbidden エラーが表示されます。これは、`curl` を介して送信したリクエストに ID 情報が添付されていないためです。 Cloud Run はリクエストを認証できません。
 
-8. Call the metrics-writer service again, but this time include an ID token in the request header. You use gcloud to generate an ID token for your Cloud Shell logged-in user. The load balancer passes the ID token through to Cloud Run.
+8. metrics-writer サービスを再度呼び出しますが、今回は要求ヘッダーに ID トークンを含めます。 gcloud を使用して、Cloud Shell にログインしているユーザーの ID トークンを生成します。ロードバランサーは ID トークンを Cloud Run に渡します。
 ```bash
 curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" $LB_IP
 ```
 
-The ID token allows Cloud Run to authenticate the user identity making the request, and then verify that the user has the appropriate `run.invoker` permission to invoke the service. The call succeeds. You see the label output.
-
-**Output (do not copy)**
-```
+ID トークンを使用すると、Cloud Run はリクエストを行うユーザー ID を認証し、ユーザーがサービスを呼び出すための適切な `run.invoker` 権限を持っていることを確認できます。呼び出しは成功します。ラベルの出力が表示されます。
+**Output**
+```terminal
 Hello from green
 ```
 
-## Congratulations!
+## おめでとうございます!
 
 <walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
 
-You have now completed the lab.
-- You implemented some core cloud native principles using Cloud Run, Google Cloud's serverless container platform.
-- You deployed containerised web services, triggered fast autoscaling, manipulated network traffic and applied built-in security controls.
-- You learned that you can accelerate your cloud native application modernization journey using Cloud Run.
+これでこのラボは完了です。
+- Google Cloud のサーバーレスコンテナプラットフォームである Cloud Run を使用して、いくつかの主要なクラウドネイティブの原則を実装しました。
+- コンテナ化された Web サービスを展開し、高速自動スケーリングをトリガーし、ネットワークトラフィックを操作し、組み込みのセキュリティ制御を適用しました。
+- Cloud Run を使用して、クラウドネイティブアプリケーションのモダナイゼーションを加速できることを学びました。
 
 デモで使った資材が不要な方は、次の手順でクリーンアップを行って下さい。
 
