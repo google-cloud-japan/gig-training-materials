@@ -16,7 +16,7 @@
 ### **1. チュートリアル資材があるディレクトリに移動する**
 
 ```bash
-cd ~/gcp-getting-started-cloudrun
+cd ~/cloudshell_open/gig-training-materials/gig04-3/
 ```
 
 ### **2. チュートリアルを開く**
@@ -28,9 +28,7 @@ teachme tutorial.md
 ### **3. gcloud のデフォルト設定**
 
 ```bash
-gcloud config set project {{project-id}}
-gcloud config set run/region {{region}}
-gcloud config set run/platform managed
+source vars.sh
 ```
 
 途中まで進めていたチュートリアルのページまで `Next` ボタンを押し、進めてください。
@@ -111,7 +109,7 @@ gcloud services enable run.googleapis.com \
 
 7. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります
 ```bash
-gclou dapp create --region $REGION
+gcloud app create --region $REGION
 ```
 
 8. Firestore データベースを作成します。
