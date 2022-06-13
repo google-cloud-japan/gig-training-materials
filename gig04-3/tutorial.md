@@ -7,58 +7,7 @@
 **なるべく新しいプロジェクトを作成してください。**
 
 <walkthrough-project-setup></walkthrough-project-setup>
-
 <walkthrough-watcher-constant key="region" value="asia-northeast1"></walkthrough-watcher-constant>
-
-## **環境準備**
-
-<walkthrough-tutorial-duration duration=10></walkthrough-tutorial-duration>
-
-最初に、ハンズオンを進めるための環境準備を行います。
-
-下記の設定を進めていきます。
-
-- gcloud コマンドラインツール設定
-- Google Cloud 機能（API）有効化設定
-
-## **gcloud コマンドラインツール**
-
-Google Cloud は、コマンドライン（CLI）、GUI から操作が可能です。ハンズオンでは主に CLI を使い作業を行いますが、GUI で確認する URL も合わせて掲載します。
-
-### **1. gcloud コマンドラインツールとは?**
-
-gcloud コマンドライン インターフェースは、Google Cloud でメインとなる CLI ツールです。このツールを使用すると、コマンドラインから、またはスクリプトや他の自動化により、多くの一般的なプラットフォーム タスクを実行できます。
-
-たとえば、gcloud CLI を使用して、以下のようなものを作成、管理できます。
-
-- Google Compute Engine 仮想マシン
-- Google Kubernetes Engine クラスタ
-- Google Cloud SQL インスタンス
-
-**ヒント**: gcloud コマンドラインツールについての詳細は[こちら](https://cloud.google.com/sdk/gcloud?hl=ja)をご参照ください。
-
-### **2. gcloud から利用する Google Cloud のデフォルトプロジェクトを設定**
-
-gcloud コマンドでは操作の対象とするプロジェクトの設定が必要です。操作対象のプロジェクトを設定します。
-
-```bash
-gcloud config set project {{project-id}}
-```
-
-承認するかどうかを聞かれるメッセージがでた場合は、`承認` ボタンをクリックします。
-
-### **3. gcloud からの Cloud Run のデフォルト設定**
-
-Cloud Run の利用するリージョン、プラットフォームのデフォルト値を設定します。
-
-```bash
-gcloud config set run/region {{region}}
-gcloud config set run/platform managed
-```
-
-ここではリージョンを東京、プラットフォームをフルマネージドに設定しました。この設定を行うことで、gcloud コマンドから Cloud Run を操作するときに毎回指定する必要がなくなります。
-
-<walkthrough-footnote>CLI（gcloud）で利用するプロジェクトの指定、Cloud Run のデフォルト値の設定が完了しました。次にハンズオンで利用する機能（API）を有効化します。</walkthrough-footnote>
 
 ## **参考: Cloud Shell の接続が途切れてしまったときは?**
 
