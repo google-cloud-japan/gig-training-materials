@@ -55,14 +55,14 @@ Metrics writer
 
 Visualizer web app
 
-- Cloud Run でホストされ、メトリックライターインスタンスによって永続化されたメトリックを読み取り、いい感じのグラフを表示するウェブアプリ。.
+- Cloud Run でホストされ、メトリックライターインスタンスによって永続化されたメトリックを読み取り、いい感じのグラフを表示するウェブアプリ。
 
 ### **目的**
 このラボでは、次のタスクを実行します。
 
-- コンテナ化されたサービスを Cloud Run にデプロイします
-- スケーリング動作を示すために Cloud Run に対して負荷を生成します
-- ネットワークトラフィックを操作するためのロードバランサーとトラフィック分割ルールを構成します
+- コンテナ化されたサービスを Cloud Run にデプロイします。
+- スケーリング動作を示すために Cloud Run に対して負荷を生成します。
+- ネットワークトラフィックを操作するためのロードバランサーとトラフィック分割ルールを構成します。
 - Cloud Run サービスへのアクセスを制限するように IAM とセキュリティルールを構成します。
 
 ## 1. Containers はユニバーサル
@@ -76,20 +76,20 @@ Visualizer web app
 - イメージは、変更することなく、さまざまなコンテナ実行環境に展開できます。
 
 ### 環境のセットアップ
-1. `Cloud Shell` を開きます
+1. `Cloud Shell` を開きます。
 
-2. このラボのスクリプトを含む git リポジトリをクローンします。 gcloud の承認を求められた場合は、承認してください。.
+2. このラボのスクリプトを含む git リポジトリをクローンします。 gcloud の承認を求められた場合は、承認してください。
 
 ```bash
 git clone https://github.com/google-cloud-japan/gig-training-materials.git
 ```
 
-3. リポジトリディレクトリに移動します
+3. リポジトリディレクトリに移動します。
 ```bash
 cd gig04-3
 ```
 <!-- シェルの中のリージョンを変更する必要あり <- done -->
-4. スクリプトを実行して、プロジェクト ID とデフォルトリージョンのシェル変数を設定します。.
+4. スクリプトを実行して、プロジェクト ID とデフォルトリージョンのシェル変数を設定します。
 ```bash
 source vars.sh
 ```
@@ -99,7 +99,7 @@ source vars.sh
 gcloud config set run/platform managed
 ```
 
-6. 必要な API を有効にします
+6. 必要な API を有効にします。
 ```bash
 gcloud services enable run.googleapis.com \
   firestore.googleapis.com \
@@ -107,7 +107,7 @@ gcloud services enable run.googleapis.com \
   compute.googleapis.com
 ```
 
-7. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります
+7. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります。
 ```bash
 gcloud app create --region $REGION
 ```
@@ -121,7 +121,7 @@ gcloud firestore databases create --region $REGION
 ここでは、metrics-writer コンテナをローカルで実行します。公開されている Google Artifacts Registry からコンテナイメージを取得します。コンテナイメージは実行可能であり、完全に自己完結型です。すべてがイメージにパッケージ化されているため、依存関係やランタイム環境をインストールする必要はありません。
 
 <!-- Source = https://source.cloud.google.com/cnaw-workspace/cloudrun-visualizer/+/master:README.md -->
-1. metrics-writer コンテナイメージをローカルの Cloud Shell インスタンスにダウンロードします
+1. metrics-writer コンテナイメージをローカルの Cloud Shell インスタンスにダウンロードします。
 ```bash
 docker pull asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
@@ -134,7 +134,7 @@ docker run \
   asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-以下のような出力が表示されます
+以下のような出力が表示されます。
 
 **Output**
 ```terminal
@@ -147,7 +147,7 @@ Signature type: http
 URL: http://localhost:8080/
 ```
 
-3. 新しい Cloud Shell タブを開きます
+3. 新しい Cloud Shell タブを開きます。
 
 4. 新しい Cloud Shell タブで、ローカルコンテナを呼び出します。
 ```bash
@@ -186,7 +186,7 @@ gcloud run deploy metrics-writer \
   --image asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-以下のような出力が表示されます
+以下のような出力が表示されます。
 
 **Output**
 ```terminal
@@ -200,7 +200,7 @@ Service [metrics-writer] revision [metrics-writer-00001-ras] has been deployed a
 Service URL: https://metrics-writer-rmclwajz3a-an.a.run.app
 ```
 
-2. metrics-writer サービスの URL の値を使用してシェル変数を設定します
+2. metrics-writer サービスの URL の値を使用してシェル変数を設定します。
 ```bash
 export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
 ```
@@ -210,7 +210,7 @@ export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(
 curl $WRITER_URL
 ```
 
-以下のような出力が表示されます
+以下のような出力が表示されます。
 
 **Output**
 ```terminal
@@ -236,7 +236,7 @@ gcloud run deploy visualizer \
 gcloud run services list
 ```
 
-You see output like below
+以下のような出力が表示されます。
 
 **Output**
 ```terminal
@@ -334,7 +334,7 @@ gcloud run services update metrics-writer \
   --concurrency 5
 ```
 
-2. コマンドを再実行して、負荷を生成します
+2. コマンドを再実行して、負荷を生成します。
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
@@ -351,13 +351,13 @@ hey -z 30s -c 30 $WRITER_URL
 
 ここでは、[コンテナ インスタンスの最大数](https://cloud.google.com/run/docs/about-instance-autoscaling#max-instances) 設定を使用して、リクエストに応じたサービスのスケーリングを制限します。 この設定は、コストを管理したり、データベースなどのバックエンドサービスへの接続数を制限したりする方法として使用します。
 
-1. metrics-writer サービスの最大インスタンス設定を更新します
+1. metrics-writer サービスの最大インスタンス設定を更新します。
 ```bash
 gcloud run services update metrics-writer \
   --max-instances 5
 ```
 
-2. コマンドを再実行して、負荷を生成します
+2. コマンドを再実行して、負荷を生成します。
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
@@ -379,13 +379,11 @@ hey -z 30s -c 30 $WRITER_URL
 名前付きタグを新しいリビジョンに割り当てることができます。これにより、サービストラフィックなしで、特定の URL でリビジョンにアクセスできます。次に、そのタグを使用して、トラフィックをタグ付きリビジョンに徐々に移行し、タグ付きリビジョンをロールバックできます。この機能の一般的な使用例は、トラフィックを処理する前に、新しいサービスリビジョンのテストと検証に使用することです。
 
 1. Cloud Shell を開きます。以前のシェルがしばらく非アクティブだった場合は、再接続が必要になる場合があります。その場合は、再接続後、repo ディレクトリに移動し、環境変数を再設定します。
-
 ```bash
 cd ~/cloudshell_open/gig-training-materials/gig04-3/ && source vars.sh
 ```
 
 2. metrics-writer サービスの新しいリビジョンをデプロイし、コンカレンシーと最大インスタンス値を既知の値に戻します。
-
 ```bash
 gcloud run services update metrics-writer \
   --concurrency 5 \
@@ -393,7 +391,6 @@ gcloud run services update metrics-writer \
 ```
 
 3. metrics-writer サービスの新しいリビジョンをデプロイします。 'green' というタグを指定します。 `--no-traffic` フラグを設定します。これは、トラフィックが新しいリビジョンにルーティングされないことを意味します。表示されるグラフの色を制御する LABEL 環境変数を設定します（環境変数はタグとはまったく関係がないことに注意してください）。
-
 ```bash
 gcloud beta run deploy metrics-writer \
   --tag green \
@@ -851,5 +848,5 @@ gcloud projects delete $PROJECT_ID
 ### **3. ハンズオン資材の削除**
 
 ```bash
-cd $HOME && rm -rf ./gig-training-materials
+cd $HOME && rm -rf ./cloudshell_open/gig-training-materials
 ```
