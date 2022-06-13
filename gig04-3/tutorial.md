@@ -257,112 +257,115 @@ LAST DEPLOYED AT: 2022-06-09T04:38:29.682058Z
 
 7. [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスして、サービスの内容を確認します。
 
-## 2. Scale-out ready
+## 2. スケールアウト対応
 
->**Cloud native principle: cloud native apps are stateless, disposable and engineered for fast, automatic scaling.
+> **クラウドネイティブの原則**: クラウドネイティブアプリはステートレスでディスポーザブルであり、高速の自動スケーリング用に設計されています。
 
-In this module you generate request traffic against the metrics-writer Cloud Run service to demonstrate autoscaling behavior. You then modify the service's configuration to see the impact on scaling behavior.
+このモジュールでは、metrics-writer の Cloud Run サービスに対してトラフィックを生成して、自動スケーリングの動作を確認します。次に、サービスの構成を変更して、スケーリング動作への影響を確認します。
 
 ![](./image/scale-out_img.png)
 
-### Cloud Run container instance autoscaling
+### Cloud Run コンテナインスタンスの自動スケーリング
 
-In Cloud Run, each active [revision](https://cloud.google.com/run/docs/resource-model#revisions) is automatically scaled to the number of container instances needed to handle incoming requests. Refer to the [instance autoscaling](https://cloud.google.com/run/docs/about-instance-autoscaling) docs for more details.
+Cloud Runでは、アクティブな各 [リビジョン](https://cloud.google.com/run/docs/resource-model#revisions) は、着信要求を処理するために必要なコンテナインスタンスの数に自動的にスケーリングされます。詳細については、 [インスタンスの自動スケーリング](https://cloud.google.com/run/docs/about-instance-autoscaling) のドキュメントを参照してください。
 
-The number of instances created is impacted by:
-- The CPU utilization of existing instances (Targeting to keep serving instances to a 60% CPU utilization)
-- The [concurrency setting](https://cloud.google.com/run/docs/about-concurrency)
-- The [maximum number of container instances setting](https://cloud.google.com/run/docs/configuring/max-instances)
-- The [minumum number of container instances setting](https://cloud.google.com/run/docs/configuring/min-instances)
+作成されるインスタンスの数は、次の影響を受けます。
+- 既存のインスタンスのCPU使用率（インスタンスを 60％ の CPU 使用率で提供し続けることを目標としています）
+- [インスタンスあたりの同時リクエストの最大数（サービス）](https://cloud.google.com/run/docs/about-concurrency)
+- [コンテナ インスタンス（サービス）の最大数](https://cloud.google.com/run/docs/configuring/max-instances)
+- [最小インスタンス数（サービス）](https://cloud.google.com/run/docs/configuring/min-instances)
 
-### Generate request traffic
+### リクエスト トラフィックを生成する
 
-1. Open Cloud Shell. If your previous shell was inactive for some time, you may need to reconnect. If so, after reconnecting, change into the repo directory and set the environment variables again.
+1. Cloud Shell を開きます。以前のシェルがしばらく非アクティブだった場合は、再接続が必要になる場合があります。その場合は、再接続後、リポディレクトリに移動し、環境変数を再設定します。
+
 ```bash
-cd ~/gig-training-materials/gig04-3/ && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
+cd ~/cloudshell_open/gig-training-materials/gig04-3/ && source vars.sh
 ```
 
-2. List the Cloud Run services.
+2. Cloud Run サービスを一覧表示します。
 ```bash
 gcloud run services list
 ```
 
-3. If you do not have one open already, one a web browser page to the url of the visualizer service.
+3. まだ開いていない場合は、visualizer サービスの URL への Web ブラウザーページを1つ開きます。
 
-4. Use the [hey](https://github.com/rakyll/hey) command-line utility to generate request traffic against the service for 30 seconds, using 30 workers. The `hey` utility is already installed in Cloud Shell.
+4. [hey](https://github.com/rakyll/hey) コマンドラインユーティリティを使用して、サービスに 30 ワーカーで 30 秒間リクエストトラフィックを生成します。 `hey` ユーティリティはすでに Cloud Shell にインストールされています。
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
 
-5. Switch to the browser page that displays the visualizer web app. You see a graph plotted on the page. Cloud Run has rapidly scaled the number of active instances to serve the traffic volume.
+5. visualizer Web アプリを表示するブラウザーページに切り替えます。ページにグラフがプロットされています。 Cloud Run は、トラフィック量を処理するためにアクティブなインスタンスの数を急速に拡大しました。
 
 ![](./image/visualizer_graph_2.png)
 
-6. Watch the graph until the end of 30 seconds. Cloud Run rapidly scales down to zero instances. Make a mental note of the peak number of active instances.
+6. 30 秒が経過するまでグラフを監視します。 Cloud Run は、インスタンスがゼロになるまで急速にスケールダウンします。アクティブなインスタンスのピーク数を覚えておいてください。
 
-7. Return to cloud shell. The `hey` utility outputs a summary of the load test. Look at the summary metrics and response time histogram.
+7. cloud shell に戻ります。 `hey` ユーティリティは、負荷テストの要約を出力します。要約メトリックと応答時間のヒストグラムを見てください。
 
 ![](./image/hey_summary.png)
 
-8. Visit the [Cloud Run section](https://console.cloud.google.com/run) of the cloud console. Click into the `metrics-writer` service, and then select the 'Metrics' tab.
+8. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。`metrics-writer` サービスをクリックし、`指標` タブを選択します。
 
-<image />
+![](./image/cloudrun_metrics_image.png)
 
-You see that Cloud Run provides some useful [monitoring metrics] out-of-the-box, such as request count, request latencies, container instance count, and more.
+Cloud Run は、リクエスト数、リクエストレイテンシ、コンテナインスタンス数など、すぐに使用できる便利な[モニタリング指標]を提供していることがわかります。
 
-9. Change the time period to '1 hour' and look at the 'container instance count' graph. The peak 'active' instances value should match approximately the value you saw in the visualizer graph. You need to wait approximately 3 minutes for the graphs to update.
+9. 期間を「1時間」に変更し、「コンテナ インスタンス 数」グラフを確認します。 ピークの「アクティブな」インスタンス値は、ビジュアライザーグラフに表示された値とほぼ一致する必要があります。 グラフが更新されるまで約 3 分待つ必要があります。
 
->Note: the Metrics tab in the Cloud Console provides the most accurate information about your Cloud Run service. This information comes from Cloud Monitoring. However, the metrics in the console take approximately 3 minutes to update. In this lab, you use the visualizer graph to show real-time scaling. The visualizer is for demo purposes only.
+>Note: クラウドコンソールの[指標]タブには、Cloud Run サービスに関する最も正確な情報が表示されます。 この情報は、Cloud Monitoring から取得されます。 ただし、コンソールのメトリックは更新に約 3 分かかります。 このラボでは、visualizer グラフを使用してリアルタイムのスケーリングを示します。 visualizer はデモ専用です。
 
-### Update service concurrency
+### サービスのコンカレンシーをアップデート
 
-Cloud Run provides a [concurrency]() setting that specifies the maximum number of requests that can be processed simultaneously by a given container instance.
+Cloud Run は、特定のコンテナインスタンスで同時に処理できるリクエストの最大数を指定する [concurrency](https://cloud.google.com/run/docs/about-concurrency) 設定を提供します。
 
-If your code cannot process parallel requests, set `concurrency=1`. Each container instance will handle only 1 request at a time, as in the diagram on the left.
+コードで並列リクエストを処理できない場合は、 `concurrency=1` を設定してください。図のように、各コンテナインスタンスは一度に 1 つのリクエストのみを処理します。
 
-If your container can handle multiple requests simultaneously, set a higher concurrency. The specified concurrency value is a _maximum_ and Cloud Run might not spend as many requests to a given container instance if the CPU of the instance is already highly utilized. In the diagram on the right, the service is configured to handle a maximum of 80 simultaneous requests(the default). Cloud Run therefore sends all 3 requests to a single container instance.
+コンテナが複数のリクエストを同時に処理できる場合は、より高いコンカレンシーを設定します。指定されたコンカレンシー値は _maximum_ であり、インスタンスの CPU がすでに高度に使用されている場合、Cloud Run は特定のコンテナインスタンスに対してそれほど多くの要求を費やさない可能性があります。図では、サービスは最大 80 の同時要求（デフォルト）を処理するように構成されています。したがって、Cloud Run は、3 つのリクエストすべてを単一のコンテナインスタンスに送信します。
 
 ![](./image/concurrency_image.png)
 
-You deployed the metrics-writer service with an initial setting of `concurrency=1`. This means that each container instance will process only a single request at a time. You used this value to demonstrate Cloud Run's fast autoscaling. However, a simple service like this can probably handle a much higher concurrency. Here, you increase the concurrency setting and investigate the impact on scaling behavior.
+`concurrency=1`の初期設定で metrics-writer サービスをデプロイしました。これは、各コンテナインスタンスが一度に 1 つのリクエストのみを処理することを意味します。この値を使用して、Cloud Run の高速自動スケーリングを示しました。ただし、このような単純なサービスでは、おそらくはるかに高い同時実行性を処理できます。ここでは、コンカレンシー設定を増やして、スケーリング動作への影響を調査します。
 
-1. Update the metrics-writer service's concurrency setting. This creates a new revision for the service. All requests are routed to this new revision once it is ready.
+1. metrics-writer サービスのコンカレンシー設定を更新します。これにより、サービスの新しいリビジョンが作成されます。準備が整うと、すべてのリクエストがこの新しいリビジョンにルーティングされます。
+
 ```bash
 gcloud run services update metrics-writer \
   --concurrency 5
 ```
 
-2. Rerun the command to generate request load
+2. コマンドを再実行して、負荷を生成します
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
 
-3. Switch back to the browser page that displays the visualizer web app. You see another graph plotted on the page.
+3. visualizer Web アプリを表示するブラウザーページに戻ります。ページに別のグラフがプロットされています。
 
 ![](./image/visualizer_graph_3.png)
 
-4. Inspect the `hey` output summary.
+4. `hey` 出力の要約を確認します。
 
 ![](./image/hey_summary_2.png)
 
-### Update service max-instances configuration
+### サービスの最大インスタンス構成を更新する
 
 Here, you use the [maximum container instances]() setting to limit the scaling of your service in response to incoming requests. Use this setting as a way to control your costs or to limit the number of connections to a backing service, such as to a database.
+ここでは、[コンテナ インスタンスの最大数](https://cloud.google.com/run/docs/about-instance-autoscaling#max-instances) 設定を使用して、リクエストに応じたサービスのスケーリングを制限します。 この設定は、コストを管理したり、データベースなどのバックエンドサービスへの接続数を制限したりする方法として使用します。
 
-1. Update the metrics-writer service's max-instances setting
+1. metrics-writer サービスの最大インスタンス設定を更新します
 ```bash
 gcloud run services update metrics-writer \
   --max-instances 5
 ```
 
-2. Rerun the command to generate request load
+2. コマンドを再実行して、負荷を生成します
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
 
-3. Switch back to the browser page that displays the visualizer web app. You see another graph plotted on the page.
+3. visualizer Web アプリを表示するブラウザーページに戻ります。ページに別のグラフがプロットされています。
 
-4. Inspect the `hey` output summary. How does it compare to the previous output?
+4. `hey` 出力の要約を確認します。以前の出力と比較してどうですか？
 
 ## 3. Nimble traffic
 
