@@ -6,16 +6,7 @@
 
 **なるべく新しいプロジェクトを作成してください。**
 
-<walkthrough-project-setup>
-</walkthrough-project-setup>
-
-### **プロジェクトの課金が有効化されていることを確認する**
-
-```bash
-gcloud beta billing projects describe {{project-id}} | grep billingEnabled
-```
-
-`billingEnabled` が **true** になっていることを確認してください。**false** の場合は、課金を有効化したプロジェクトを用意してください。
+<walkthrough-project-setup></walkthrough-project-setup>
 
 <walkthrough-watcher-constant key="region" value="asia-northeast1"></walkthrough-watcher-constant>
 
