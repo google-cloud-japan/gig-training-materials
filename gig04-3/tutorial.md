@@ -66,7 +66,7 @@ Visualizer web app
 - Cloud Run サービスへのアクセスを制限するように IAM とセキュリティルールを構成します。
 
 ## 1. Containers はユニバーサル
-> **クラウドネイティブの原則**: コンテナは、クラウドネイティブソフトウェアにおける、標準化されたイミュータブルなユニットです。
+> _**クラウドネイティブの原則**: コンテナは、クラウドネイティブソフトウェアにおける、標準化されたイミュータブルなユニットです。_
 
 このタスクでは、環境を設定し、最初のアーキテクチャをデプロイします。
 
@@ -259,7 +259,7 @@ LAST DEPLOYED AT: 2022-06-09T04:38:29.682058Z
 
 ## 2. スケールアウト対応
 
-> **クラウドネイティブの原則**: クラウドネイティブアプリはステートレスでディスポーザブルであり、高速の自動スケーリング用に設計されています。
+>_**クラウドネイティブの原則**: クラウドネイティブアプリはステートレスでディスポーザブルであり、高速の自動スケーリング用に設計されています。_
 
 このモジュールでは、metrics-writer の Cloud Run サービスに対してトラフィックを生成して、自動スケーリングの動作を確認します。次に、サービスの構成を変更して、スケーリング動作への影響を確認します。
 
@@ -349,7 +349,6 @@ hey -z 30s -c 30 $WRITER_URL
 
 ### サービスの最大インスタンス構成を更新する
 
-Here, you use the [maximum container instances]() setting to limit the scaling of your service in response to incoming requests. Use this setting as a way to control your costs or to limit the number of connections to a backing service, such as to a database.
 ここでは、[コンテナ インスタンスの最大数](https://cloud.google.com/run/docs/about-instance-autoscaling#max-instances) 設定を使用して、リクエストに応じたサービスのスケーリングを制限します。 この設定は、コストを管理したり、データベースなどのバックエンドサービスへの接続数を制限したりする方法として使用します。
 
 1. metrics-writer サービスの最大インスタンス設定を更新します
@@ -367,32 +366,34 @@ hey -z 30s -c 30 $WRITER_URL
 
 4. `hey` 出力の要約を確認します。以前の出力と比較してどうですか？
 
-## 3. Nimble traffic
+## 3. 軽快なトラフィック
 
->_**Cloud native principle**: Cloud-native apps have a programmable network data plane._
+>_**クラウドネイティブの原則**: クラウドネイティブアプリには、プログラム可能なネットワークデータプレーンがあります。_
 
-In this section you configure Cloud Run traffic splitting and ingress rules. You program this network behavior using simple API calls.
+このセクションでは、Cloud Run トラフィックの分割と ingress ルールを構成します。 このネットワーク動作は、シンプルな API 呼び出しを使用してプログラムします。
 
 ![](./image/nimble-traffic_image.png)
 
-### Deploy a tagged version
+### タグ付きバージョンをデプロイする
 
-You can assign a named tag to a new revision that allows you to access the revision at a specific URL, without service traffic. You can then use that tag to gradually migrate traffic to the tagged revision, and to rollback a tagged revision. A common use case for this feature is to use it for testing and vetting of a new service revision before it serves any traffic.
+名前付きタグを新しいリビジョンに割り当てることができます。これにより、サービストラフィックなしで、特定の URL でリビジョンにアクセスできます。次に、そのタグを使用して、トラフィックをタグ付きリビジョンに徐々に移行し、タグ付きリビジョンをロールバックできます。この機能の一般的な使用例は、トラフィックを処理する前に、新しいサービスリビジョンのテストと検証に使用することです。
 
-1. Open Cloud Shell. If your previous shell was inactive for some time, you may need to reconnect. If so, after reconnecting, change into the repo directory and set the environment variables again.
+1. Cloud Shell を開きます。以前のシェルがしばらく非アクティブだった場合は、再接続が必要になる場合があります。その場合は、再接続後、repo ディレクトリに移動し、環境変数を再設定します。
 
 ```bash
-cd ~/gig-training-materials/gig04-3/ && source vars.sh && export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
+cd ~/cloudshell_open/gig-training-materials/gig04-3/ && source vars.sh
 ```
 
-2. Deploy a new revision for the metrics-writer service, setting the concurrency and max-instances values back to known values.
+2. metrics-writer サービスの新しいリビジョンをデプロイし、コンカレンシーと最大インスタンス値を既知の値に戻します。
+
 ```bash
 gcloud run services update metrics-writer \
   --concurrency 5 \
   --max-instances 7
 ```
 
-3. Deploy a new revision of the metrics-writer service. You specify a tag called 'green'. You set the `--no-traffic` flag, which means that no traffic is routed to the new revision. You set the LABEL environment variable, which controls the color of the displayed graph (note that the environment variable is totally unrelated to the tag).
+3. metrics-writer サービスの新しいリビジョンをデプロイします。 'green' というタグを指定します。 `--no-traffic` フラグを設定します。これは、トラフィックが新しいリビジョンにルーティングされないことを意味します。表示されるグラフの色を制御する LABEL 環境変数を設定します（環境変数はタグとはまったく関係がないことに注意してください）。
+
 ```bash
 gcloud beta run deploy metrics-writer \
   --tag green \
@@ -401,12 +402,10 @@ gcloud beta run deploy metrics-writer \
   --image asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-You see output like below. Note the revision is serving 0 percent of traffic, and that it has a dedicated URL prefixed with the tag name.
+以下のような出力が表示されます。リビジョンはトラフィックの 0％ を処理しており、タグ名の前に専用 URL が付いていることに注意してください。
 
-You see output like below
-
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Deploying container to Cloud Run service [metrics-writer] in project [gig4-3] region [asia-northeast1]
 OK Deploying... Done.
   OK Creating Revision...
@@ -416,45 +415,45 @@ Service [metrics-writer] revision [metrics-writer-00005-don] has been deployed a
 The revision can be reached directly at https://green---metrics-writer-rmclwajz3a-an.a.run.app
 ```
 
-4. The previous command output the dedicated tagged url for the new 'green' revision. Set a shell variable, replacing [TAGGED_URL] with the value from the command output.
+4. 前のコマンドは、新しい 'green' リビジョン専用のタグ付き URL を出力します。 [TAGGED_URL] をコマンド出力の値に置き換えて、シェル変数を設定します。
 ```bash
 export GREEN_URL=[TAGGED_URL]
 ```
 
-5. List the service revisions. You see there are two active revisions.
+5. サービスリビジョンを一覧表示します。 2 つのアクティブなリビジョンがあることがわかります。
 ```bash
 gcloud run revisions list --service metrics-writer
 ```
 
-6. Perform a request to the service. Run the command several times. You see that the service always returns "blue". The green service is not serving traffic from the primary service URL.
+6. サービスへのリクエストを実行します。コマンドを数回実行すると、サービスが常に 'blue' を返すことがわかります。'green' サービスは、プライマリサービス URL からのトラフィックを処理していません。
 ```bash
 curl $WRITER_URL
 ```
 
-7. Perform a request against the new tagged URL. You see that the service returns "green". The main revision is still serving all live traffic, but you now have a tagged version with a dedicated URL you can test against.
+7. 新しいタグ付き URL に対してリクエストを実行します。サービスが 'green' を返すことがわかります。メインリビジョンは引き続きすべてのライブトラフィックに対応していますが、テスト可能な専用 URL が付いたタグ付きバージョンがあります。
 ```bash
 curl $GREEN_URL
 ```
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Hello from green
 ```
 
-### Configure a traffic split
+### トラフィックスプリッティングの構成
 
-Cloud Run allows you to specify which revisions or tags should receive traffic, and to specify traffic percentages that are received by a revision. This feature allows you to rollback to a previsou revision, gradually roll out a revision, and split traffic between multiple revisions.
+Cloud Run を使用すると、トラフィックを受信するリビジョンまたはタグを指定したり、リビジョンによって受信されるトラフィックの割合を指定したりできます。この機能を使用すると、以前のリビジョンにロールバックし、リビジョンを段階的にロールアウトして、トラフィックを複数のリビジョンに分割できます。
 
-1. Configure a traffic split, sending 10% of traffic to the revision tagged 'green'
+1. トラフィック分割を構成し、トラフィックの 10％　を 'green' とタグ付けされたリビジョンに送信します。
 ```bash
 gcloud beta run services update-traffic \
   metrics-writer --to-tags green=10
 ```
 
-You see output like below. The output describes the current traffic configuration.
+以下のような出力が表示されます。出力には、現在のトラフィック構成が記述されています。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 OK Updating traffic... Done.
   OK Routing traffic...
 Done.
@@ -465,62 +464,62 @@ Traffic:
         green: https://green---metrics-writer-rmclwajz3a-an.a.run.app
 ```
 
-2. Generate request load against the metrics-writer service. You see the main service URL.
+2. metrics-writer サービスに対してリクエストロードを生成します。メインサービスの URL が表示されます。
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
 
-3. Switch back to the browser page that displays the visualizer web app. You see a graph plotted on the page. The graph has two lines, one green and one blue. The 'green' service is receiving approximately 10% of traffic
+3. visualizer Web アプリを表示するブラウザーページに戻ります。ページにグラフがプロットされています。グラフには、緑と青の2本の線があります。 'green' サービスはトラフィックの約 10％ を受信して​​います。
 
 ![](./image/visualizer_graph_4.png)
 
-4. Configure another traffic split, now sending 50% of traffic to the revision tagged 'green'
+4. 別のトラフィック分割を構成し、トラフィックの 50％ を 'green' とタグ付けされたリビジョンに送信します。
 ```bash
 gcloud beta run services update-traffic \
   metrics-writer --to-tags green=50
 ```
 
-5. Generate request load against the metrics-writer service.
+5. metrics-writer サービスに対してリクエストロードを生成します。
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
 
-6. Switch back to the browser page that displays the visualizer web app. This time the traffic is split evenly between the green and blue revisions.
+6. visualizer Web アプリを表示するブラウザーページに戻ります。今回は、トラフィックが 'green' と 'blue' のリビジョン間で均等に分割されます。
 
-### Create an external HTTP(S) load balancer
+### 外部 HTTP(S) ロードバランサーを作成する
 
-In this section you create an [external HTTP(S) load balancer](https://cloud.google.com/load-balancing/docs/https). Google Cloud HTTP(S) Load Balancing is a global, proxy-based Layer 7 load balancer that enables you to run and scale your services worldwide behind a single external IP address. You use a [serverless network endpoint group](https://cloud.google.com/load-balancing/docs/negs/serverless-neg-concepts)(NEG) to route requests from the load balancer to your Cloud Run service.
+このセクションでは、[外部 HTTP(S) 負荷分散の概要](https://cloud.google.com/load-balancing/docs/https) を作成します。 Google Cloud HTTP（S）Load Balancing は、グローバルなプロキシベースのレイヤー 7 ロードバランサーであり、単一の外部 IP アドレスの背後でサービスを世界中で実行および拡張できます。 [サーバーレス ネットワーク エンドポイント グループ](https://cloud.google.com/load-balancing/docs/negs/serverless-neg-concepts)(NEG) を使用して、ロードバランサーから Cloud Run サービスにリクエストをルーティングします。
 
->WORNING: for simplicity, you create a HTTP (not HTTPS) load balancer. This way, you don't have to set up certificates. In production, you should use a HTTPS load balancer.
+>WARNING: 簡単にするために、HTTP（HTTPSではない）ロードバランサーを作成します。この方法では、証明書を設定する必要はありません。本番環境では、HTTPS ロードバランサーを使用する必要があります。
 
->NOTE: creating a load balancer involves several steps. FOr convenience, here you use Terraform to create the load balancer and related components.
+>NOTE: ロードバランサーの作成にはいくつかの手順が必要です。ここでは Terraform を使用してロードバランサーと関連コンポーネントを作成します。
 
-1. In the gig04-3 repo directory, initialize Terraform.
+1. gig04-3 リポジトリディレクトリで、Terraform を初期化します。
 ```bash
 terraform init
 ```
 
-2. Apply the Terraform to create the load balancer and related components. You configure a serverless NEG that routes requests from the load-balancer to the metrics-writer Cloud Run Service.
+2. Terraform で構成を適用して、ロードバランサーと関連コンポーネントを作成します。ロードバランサーから metrics-writer の Cloud Run サービスにリクエストをルーティングするサーバーレス NEG を構成します。
 ```bash
 terraform apply -auto-approve -var project_id=$PROJECT_ID
 ```
 
-The final line of the Terraform output should be similar to below:
+Terraform 出力の最終行は、次のようになります:
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
 ```
 
-3. List th eforwarding rule that specifies the external IP address of the load balancer
+3. ロードバランサーの外部 IP アドレスを指定する転送ルールを一覧表示します。
 ```bash
 gcloud compute forwarding-rules list
 ```
 
-You see output like below
+以下のような出力が表示されます。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 NAME: lb-http
 REGION:
 IP_ADDRESS: 34.110.187.86
@@ -528,50 +527,50 @@ IP_PROTOCOL: TCP
 TARGET: lb-http-http-proxy
 ```
 
-4. Set a shell variable for the load balancer IP address, replacing [IP_ADDRESS] with the value from the previous output
+4. ロードバランサーの IP アドレスのシェル変数を設定し、[IP_ADDRESS] を前の出力の値に置き換えます。
 ```bash
 export LB_IP=[IP_ADDRESS]
 ```
 
-5. Wait **1 minute** for the load balancer to come fully online.
+5. ロードバランサーが完全にオンラインになるまで **1分** 待ちます。
 
-6. Perform a HTTP GET request to the load balancer address. If you get a 404 error, wait a little more fo rthe load balancer to be ready.
+6. ロードバランサーのアドレスに対して HTTPGET 要求を実行します。 404 エラーが発生した場合は、ロードバランサーの準備ができるまでもう少し待ちます。
 ```bash
 curl $LB_IP
 ```
 
-You see a response from the metrics-writer service. HTTP requests to the load balancer are being routed to the metrics-writer service. As your traffic split is still active, you might see either 'green' or 'blue'
+metrics-writer サービスからの応答が表示されます。ロードバランサーへの HTTP リクエストは、metrics-writer サービスにルーティングされています。トラフィック分割がまだアクティブであるため、'green' または 'blue' のいずれかが表示される場合があります。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Hello from blue
 ```
 
-### Apply ingress rules
+### ingress ルールを適用する
 
-You deployed the metrics-writer Cloud Run service with the `--allow-unauthenticated` flag. This makes the service URL publicly accessible on the internet. Anyone can interact directly with your sercie.
+`--allow-unauthenticated` フラグを使用して metrics-writer Cloud Run サービスをデプロイしました。これにより、サービス URL がインターネット上で公開されます。誰でもあなたのサービスと直接対話することができます。
 
-In this section, you set [ingress rules](https://cloud.google.com/run/docs/securing/ingress) on the Cloud Run service to reject any requests that do not originate from the load balancer, or from inside your project's VPC network. This way, the Cloud Run servicer URL is not publicly accessible on the internet.
+このセクションでは、Cloud Run サービスで [上り（内向き）の設定](https://cloud.google.com/run/docs/securing/ingress) を設定して、ロードバランサーまたプロジェクトの VPC ネットワーク内部から発信されていないリクエストを拒否します。これにより、Cloud Run サービスの URL はインターネット上でパブリックにアクセスできません。
 
-By forcing all requests through the load balancer, you can also take advantage of additional load balancer features such as [Cloud Armor](https://cloud.google.com/armor) and [Cloud CDN](https://cloud.google.com/cdn).
+ロードバランサーを介してすべてのリクエストを強制することで、[Cloud Armor](https://cloud.google.com/armor) や [Cloud CDN](https://cloud.google.com/cdn) などの追加のロードバランサー機能を利用することもできます。
 
-1. Verify that you can still interact with the metrics-writer service via it's service URL
+1. サービス URL を介して metrics-writer サービスと引き続き対話できることを確認します。
 ```bash
 curl $WRITER_URL
 ```
 
-2. Apply an ingress rule to the metrics-writer Cloud Run service. The ingress rule allows only requests that originate from a Google Cloud load balancer, or from within your project's VPC.
+2. ingress ルールを metrics-writer Cloud Run サービスに適用します。ingress ルールでは、Google Cloud ロードバランサーまたはプロジェクトの VPC 内から発信されたリクエストのみが許可されます。
 ```bash
 gcloud run services update metrics-writer \
   --ingress internal-and-cloud-load-balancing
 ```
 
-3. Verify that you can no longer interact with the service via it's URL.
+3. サービスの URL を介してサービスを操作できなくなったことを確認します。
 ```bash
 curl $WRITER_URL
 ```
 
-Requests to the service URL are rejected. You see a HTML page that describes a HTTP 403 (Forbidden) error. The service URL is no longer accessible on the internet.
+サービス URL へのリクエストは拒否されます。 HTTP 403(禁止) エラーを説明する HTML ページが表示されます。インターネット上でサービス URL にアクセスできなくなりました。
 
 **Output (do not copy)**
 ```html
@@ -586,7 +585,7 @@ Requests to the service URL are rejected. You see a HTML page that describes a H
 </body></html>
 ```
 
-4. Verify that you can still interact with the service via the load balancer.
+4. ロードバランサーを介してサービスと対話できることを確認します。
 ```bash
 curl $LB_IP
 ```
