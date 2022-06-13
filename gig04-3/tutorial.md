@@ -98,68 +98,70 @@ gcloud config set run/platform managed
 ## [解説] ハンズオンの内容
 
 ### **概要**
-In this lab you implement some core cloud nadtive development principles using Cloud Run. The lab is divided into sections. In each section you configure Cloud Run services to demonstrate a particular cloud native principle.
+このラボでは、いくつかの重要なクラウドネイティブ開発原則に基づいて Cloud Run を実装します。 ラボは各セクションに分かれています。 各セクションでは、特定のクラウドネイティブ原則を示すように Cloud Run サービスを構成します。
 
-As defined by the Cloud Native Computing Foundation (CNCF): "Cloud native technologies empower organisations to build and run scalable applications in modern, dynamic environments such as public, private, and hybrid clouds. Containers, service meshes, microservices, immutable infrastructure, and declarative APIs exemplify this approach. These techniques enable loosely coupled systems that are resilient, manageable, and observable. Combined with robust automation, they allow engineers to make high-impact changes frequently and predictably with minimal toil."
+Cloud Native Computing Foundation（CNCF）の定義によると、「クラウドネイティブテクノロジーにより、組織は、パブリック、プライベート、ハイブリッドクラウドなどの最新の動的環境でスケーラブルなアプリケーションを構築および実行できます。コンテナ、サービスメッシュ、マイクロサービス、イミュータブルインフラストラクチャ、および 宣言型 API は、このアプローチの例です。これらの手法により、復元力、管理性、監視性を備えた疎結合システムが実現可能になります。堅牢な自動化と組み合わせることで、エンジニアは最小限の労力で頻繁かつ予測どおりに影響の大きい変更を行うことができます。」
 
-The following diagram describes the starting state of the lab. The architecture is fully serverless. You deploy containerised web services to Cloud Run that interact with a Cloud Firestore NoSQL database.
+次の図は、ラボの開始状態を示しています。 アーキテクチャは完全にサーバーレスです。 Cloud Firestore NoSQL データベースと相互作用するコンテナ化された Web サービスを Cloud Run にデプロイします。
 
 ![](./image/overview-img.png)
 
-The architecture consists of two Cloud Run services:
+このアーキテクチャは、2つのCloudRunサービスで構成されています。
 
 Metrics writer
 
-- Simple 'hello world' style service that writes metrics to a Cloud Firestore database.
-- Each metrics-writer instance writes a heartbeat record to the Cloud Firestore database every 1 second.
-> The heartbeat record indicates whether the instance is active (processing a request), how many requests it received in the last second, and other metadata
+- メトリックを Cloud Firestore データベースに書き込むシンプルな「helloworld」スタイルのサービス。
+- 各メトリックライターインスタンスは、1秒ごとにハートビートレコードを Cloud Firestore データベースに書き込みます。
+
+> ハートビートレコードは、インスタンスがアクティブであるかどうか（要求を処理しているかどうか）、最後の1秒間に受信した要求の数、およびその他のメタデータを示します
+
 Visualizer web app
 
-- Web app hosted in Cloud Run that reads the metrics persisted by the metrics-writer instances, and displays in a nice graph.
+- Cloud Run でホストされ、メトリックライターインスタンスによって永続化されたメトリックを読み取り、いい感じのグラフを表示するウェブアプリ。.
 
 ### **目的**
-In this lab, you perform the following tasks:
+このラボでは、次のタスクを実行します。
 
-- Deploy containerised services to Cloud Run
-- Generate load against Cloud Run to demonstrate scaling behaviour
-- Configure a load balancer and traffic splitting rules to manipulate network traffic
-- Configure IAM and security rules to limit access to Cloud Run services.
+- コンテナ化されたサービスを Cloud Run にデプロイします
+- スケーリング動作を示すために Cloud Run に対して負荷を生成します
+- ネットワークトラフィックを操作するためのロードバランサーとトラフィック分割ルールを構成します
+- Cloud Run サービスへのアクセスを制限するように IAM とセキュリティルールを構成します。
 
-## 1. Containers are universal
-> **Cloud native principle**: Containers are the standardised, immutable unit of cloud native software.
+## 1. Containers はユニバーサル
+> **クラウドネイティブの原則**: コンテナは、クラウドネイティブソフトウェアにおける、標準化されたイミュータブルなユニットです。
 
-In this task you configure your environment and deploy the initial architecture.
+このタスクでは、環境を設定し、最初のアーキテクチャをデプロイします。
 
-- You deploy Cloud Run services using prebuilt container images.
-- It doesn't matter what programming language, web frameworks or dependencies the images use.
-- The images are packaged in a standardised, universal format.
-- The images can be deployed to different container execution environments, without modification.
+- ビルド済みのコンテナイメージを使用して Cloud Run サービスを展開します。
+- イメージが使用するプログラミング言語、Webフレームワーク、または依存関係は関係ありません。
+- イメージは、標準化されたユニバーサルなフォーマットでパッケージ化されています。
+- イメージは、変更することなく、さまざまなコンテナ実行環境に展開できます。
 
-### Setup your environment
-1. Open `Cloud Shell`
+### 環境のセットアップ
+1. `Cloud Shell` を開きます
 
-2. Clone the Cloud Source Repositories git repository that contains some helper scripts for this lab. If you are requested to authorise gcloud, do so.
+2. このラボのスクリプトを含む git リポジトリをクローンします。 gcloud の承認を求められた場合は、承認してください。.
 
 ```bash
 git clone https://github.com/google-cloud-japan/gig-training-materials.git
 ```
 
-3. Change into the repo directory and checkout the main branch
+3. リポジトリディレクトリに移動します
 ```bash
 cd gig04-3
 ```
 <!-- シェルの中のリージョンを変更する必要あり <- done -->
-4. Run the helper script to set shell variables for your project ID and default region.
+4. スクリプトを実行して、プロジェクト ID とデフォルトリージョンのシェル変数を設定します。.
 ```bash
 source vars.sh
 ```
 
-5. Configure `gcloud` to use Cloud Run manged platform by default
+5. デフォルトで Cloud Run のマネージド環境を利用するよう、 `gcloud` コマンドで設定します。
 ```bash
 gcloud config set run/platform managed
 ```
 
-6. Enable the required APIs
+6. 必要な API を有効にします
 ```bash
 gcloud services enable run.googleapis.com \
   firestore.googleapis.com \
@@ -167,26 +169,26 @@ gcloud services enable run.googleapis.com \
   compute.googleapis.com
 ```
 
-7. Initialize AppEngine. You do not use AppEngine in this lab, but you need to initialize AppEngine before you create a Firestore database in the next step
+7. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります
 ```bash
 gclou dapp create --region $REGION
 ```
 
-8. Create a FIrestore database.
+8. Firestore データベースを作成します。
 ```bash
 gcloud firestore databases create --region $REGION
 ```
 
-### Run the metrics-writer container locally
-Here, you run a metrics-writer container locally. You fetch the container image from a public Google Container Registry. The container image is executable and fully self-contained. You don't need to install any dependencies or runtime environments, as everything is packaged into the image.
+### metrics-writer コンテナをローカルで実行する
+ここでは、metrics-writer コンテナをローカルで実行します。公開されている Google Artifacts Registry からコンテナイメージを取得します。コンテナイメージは実行可能であり、完全に自己完結型です。すべてがイメージにパッケージ化されているため、依存関係やランタイム環境をインストールする必要はありません。
 
 <!-- Source = https://source.cloud.google.com/cnaw-workspace/cloudrun-visualizer/+/master:README.md -->
-1. Download the metrics-writer container image to your local Cloud Shell.
+1. metrics-writer コンテナイメージをローカルの Cloud Shell インスタンスにダウンロードします
 ```bash
 docker pull asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-2. Run the image. You set an environment variable for your project ID, and map a local port to the container port.
+2. イメージを実行します。プロジェクト ID に環境変数を設定し、ローカルポートをコンテナポートにマップします。
 ```bash
 docker run \
   -e GOOGLE_CLOUD_PROJECT=${PROJECT_ID} \
@@ -194,10 +196,10 @@ docker run \
   asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-you see output like below
+以下のような出力が表示されます
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 > hello-world-metrics@0.0.1 start /usr/src/app
 > functions-framework --target=helloMetrics --source ./src/
 
@@ -207,24 +209,24 @@ Signature type: http
 URL: http://localhost:8080/
 ```
 
-3. Open a new Cloud Shell tab
+3. 新しい Cloud Shell タブを開きます
 
-4. In the new CLoud Shell tab, call the local container.
+4. 新しい Cloud Shell タブで、ローカルコンテナを呼び出します。
 ```bash
 curl localhost:8080
 ```
 
-You see output like below, indicating a successful response.
+以下のような出力が表示され、正常な応答を示しています。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Hello from blue
 ```
 
-5. Go back to the first Cloud Shell tab. You see logging output from the container, indicating that it is starting metrics schedule. You can ignore these logs.
+5. 最初の Cloud Shell タブに戻ります。メトリックスケジュールが開始していることが示されています。これらのログは無視してかまいません。
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 URL: http://localhost:8080/
 initialising instance: 7229f512-6676-4211-90ca-80545c26aeb1
 starting metrics schedule...
@@ -232,13 +234,13 @@ Metrics: id=7229f512, activeRequests=0,  requestsSinceLast=1
 Metrics: id=7229f512, activeRequests=0,  requestsSinceLast=0
 ```
 
->Note: If you are getting an error then wait for a while and re-execute the commands from above steps (Step 2 to Step 5).
+>Note: エラーが発生した場合は、しばらく待ってから、上記の手順（手順2から手順5）のコマンドを再実行してください。
 
-6. Stop the locally running container using control-c.
+6. control-c でローカル実行されているコンテナを停止します。
 
-### Deploy the initial architecture
+### 初期アーキテクチャのデプロイ
 
-1. Deploy the `metrics-writer` app to Cloud Run. You use a prebuild container image from a Google Artifact Registry.
+1. `metrics-writer` アプリを Cloud Run にデプロイします。Google Artifact Registry からのビルド済みコンテナイメージを使用します。
 ```bash
 gcloud run deploy metrics-writer \
   --concurrency 1 \
@@ -246,10 +248,10 @@ gcloud run deploy metrics-writer \
   --image asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/metrics-writer:latest
 ```
 
-You see output like below
+以下のような出力が表示されます
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Deploying container to Cloud Run service [metrics-writer] in project [gig4-3] region [asia-northeast1]
 OK Deploying new service... Done.
   OK Creating Revision... Revision deployment finished. Checking container health.
@@ -260,24 +262,24 @@ Service [metrics-writer] revision [metrics-writer-00001-ras] has been deployed a
 Service URL: https://metrics-writer-rmclwajz3a-an.a.run.app
 ```
 
-2. Set a shell variable with the value of the URL for the metrics-writer service
+2. metrics-writer サービスの URL の値を使用してシェル変数を設定します
 ```bash
 export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
 ```
 
-3. Verify that you can interact with the metrics-writer service. Replace [SERVICE_URL] with the Service URL value from the output of the previous command.
+3. metrics-writer サービスと対話できることを確認します。 [SERVICE_URL] を前のコマンドの出力からのサービス URL の値に置き換えます。
 ```bash
 curl $WRITER_URL
 ```
 
-You see output like below
+以下のような出力が表示されます
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 Hello from blue
 ```
 
-4. Deploy the `visualizer` app to Cloud Run. Again, you use a prebuilt container image from a Google Artifact Registry.
+4. `visualizer`　アプリを Cloud Run にデプロイします。ここでも、Google Artifact Registry から事前に作成されたコンテナイメージを使用します。
 ```bash
 gcloud run deploy visualizer \
   --allow-unauthenticated \
@@ -285,21 +287,21 @@ gcloud run deploy visualizer \
   --image asia-northeast1-docker.pkg.dev/gig4-3/gig4-3/visualizer:latest
 ```
 
-5. The visualizer service is a web app. On your local machine, open a web browser to the Service URL, copying the URL value from the output of the deploy command.
+5. visualizer サービスは Web アプリです。ローカルマシンで、Web ブラウザを開いてサービス URL にアクセスし、deploy コマンドの出力から URL 値をコピーします。
 
-You see an empty graph, similar to below:
+以下のような空のグラフが表示されます:
 
 ![](./image/visualizer_graph.png)
 
-6. List the Cloud Run services. You see two services, metrics-writer and visualizer.
+6. Cloud Run サービスを一覧表示します。metrics-writer と visualizer の2つのサービスが表示されます。
 ```bash
 gcloud run services list
 ```
 
 You see output like below
 
-**Output (do not copy)**
-```
+**Output**
+```terminal
 ✔
 SERVICE: metrics-writer
 REGION: asia-northeast1
@@ -315,7 +317,7 @@ LAST DEPLOYED BY: admin@hiroyukimomoi.altostrat.com
 LAST DEPLOYED AT: 2022-06-09T04:38:29.682058Z
 ```
 
-7. Visit the [Cloud Run section](https://console.cloud.google.com/run) of the cloud console and explore the services.
+7. [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスして、サービスの内容を確認します。
 
 ## 2. Scale-out ready
 
