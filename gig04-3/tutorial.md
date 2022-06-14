@@ -78,7 +78,7 @@ Cloud Native Computing Foundation（CNCF）の定義によると、「クラウ�
 
 次の図は、ラボの開始状態を示しています。 アーキテクチャは完全にサーバーレスです。 Cloud Firestore NoSQL データベースと相互作用するコンテナ化された Web サービスを Cloud Run にデプロイします。
 
-![](./image/overview-img.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/overview-img.png?raw=true)
 
 このアーキテクチャは、2つのCloudRunサービスで構成されています。
 
@@ -155,7 +155,7 @@ gcloud firestore databases create --region $REGION
 ```
 
 ### metrics-writer コンテナをローカルで実行する
-ここでは、metrics-writer コンテナをローカルで実行します。公開されている Google Artifacts Registry からコンテナイメージを取得します。コンテナイメージは実行可能であり、完全に自己完結型です。すべてがイメージにパッケージ化されているため、依存関係やランタイム環境をインストールする必要はありません。
+ここでは、metrics-writer コンテナをローカルで実行します。公開されている Google Artifact Registry からコンテナイメージを取得します。コンテナイメージは実行可能であり、完全に自己完結型です。すべてがイメージにパッケージ化されているため、依存関係やランタイム環境をインストールする必要はありません。
 
 <!-- Source = https://source.cloud.google.com/cnaw-workspace/cloudrun-visualizer/+/master:README.md -->
 1. metrics-writer コンテナイメージをローカルの Cloud Shell インスタンスにダウンロードします。
@@ -242,7 +242,7 @@ Service URL: https://metrics-writer-rmclwajz3a-an.a.run.app
 export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
 ```
 
-3. metrics-writer サービスと対話できることを確認します。 [SERVICE_URL] を前のコマンドの出力からのサービス URL の値に置き換えます。
+3. metrics-writer サービスと対話できることを確認します。
 ```bash
 curl $WRITER_URL
 ```
@@ -254,7 +254,7 @@ curl $WRITER_URL
 Hello from blue
 ```
 
-4. `visualizer`　アプリを Cloud Run にデプロイします。ここでも、Google Artifact Registry から事前に作成されたコンテナイメージを使用します。
+4. `visualizer` アプリを Cloud Run にデプロイします。ここでも、Google Artifact Registry から事前に作成されたコンテナイメージを使用します。
 ```bash
 gcloud run deploy visualizer \
   --allow-unauthenticated \
@@ -266,7 +266,7 @@ gcloud run deploy visualizer \
 
 以下のような空のグラフが表示されます:
 
-![](./image/visualizer_graph.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/visualizer_graph.png?raw=true)
 
 6. Cloud Run サービスを一覧表示します。metrics-writer と visualizer の2つのサービスが表示されます。
 ```bash
@@ -300,7 +300,7 @@ LAST DEPLOYED AT: 2022-06-09T04:38:29.682058Z
 
 このモジュールでは、metrics-writer の Cloud Run サービスに対してトラフィックを生成して、自動スケーリングの動作を確認します。次に、サービスの構成を変更して、スケーリング動作への影響を確認します。
 
-![](./image/scale-out_img.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/scale-out_img.png?raw=true)
 
 ### Cloud Run コンテナインスタンスの自動スケーリング
 
@@ -334,17 +334,17 @@ hey -z 30s -c 30 $WRITER_URL
 
 5. visualizer Web アプリを表示するブラウザーページに切り替えます。ページにグラフがプロットされています。 Cloud Run は、トラフィック量を処理するためにアクティブなインスタンスの数を急速に拡大しました。
 
-![](./image/visualizer_graph_2.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/visualizer_graph_2.png?raw=true)
 
 6. 30 秒が経過するまでグラフを監視します。 Cloud Run は、インスタンスがゼロになるまで急速にスケールダウンします。アクティブなインスタンスのピーク数を覚えておいてください。
 
 7. cloud shell に戻ります。 `hey` ユーティリティは、負荷テストの要約を出力します。要約メトリックと応答時間のヒストグラムを見てください。
 
-![](./image/hey_summary.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/hey_summary.png?raw=true)
 
 8. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。`metrics-writer` サービスをクリックし、`指標` タブを選択します。
 
-![](./image/cloudrun_metrics_image.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/cloudrun_metrics_image.png?raw=true)
 
 Cloud Run は、リクエスト数、リクエストレイテンシ、コンテナインスタンス数など、すぐに使用できる便利な[モニタリング指標]を提供していることがわかります。
 
@@ -360,7 +360,7 @@ Cloud Run は、特定のコンテナインスタンスで同時に処理でき�
 
 コンテナが複数のリクエストを同時に処理できる場合は、より高いコンカレンシーを設定します。指定されたコンカレンシー値は _maximum_ であり、インスタンスの CPU がすでに高度に使用されている場合、Cloud Run は特定のコンテナインスタンスに対してそれほど多くの要求を費やさない可能性があります。図では、サービスは最大 80 の同時要求（デフォルト）を処理するように構成されています。したがって、Cloud Run は、3 つのリクエストすべてを単一のコンテナインスタンスに送信します。
 
-![](./image/concurrency_image.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/concurrency_image.png?raw=true)
 
 `concurrency=1`の初期設定で metrics-writer サービスをデプロイしました。これは、各コンテナインスタンスが一度に 1 つのリクエストのみを処理することを意味します。この値を使用して、Cloud Run の高速自動スケーリングを示しました。ただし、このような単純なサービスでは、おそらくはるかに高い同時実行性を処理できます。ここでは、コンカレンシー設定を増やして、スケーリング動作への影響を調査します。
 
@@ -378,11 +378,11 @@ hey -z 30s -c 30 $WRITER_URL
 
 3. visualizer Web アプリを表示するブラウザーページに戻ります。ページに別のグラフがプロットされています。
 
-![](./image/visualizer_graph_3.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/visualizer_graph_3.png?raw=true)
 
 4. `hey` 出力の要約を確認します。
 
-![](./image/hey_summary_2.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/hey_summary_2.png?raw=true)
 
 ### サービスの最大インスタンス構成を更新する
 
@@ -409,7 +409,7 @@ hey -z 30s -c 30 $WRITER_URL
 
 このセクションでは、Cloud Run トラフィックの分割と ingress ルールを構成します。 このネットワーク動作は、シンプルな API 呼び出しを使用してプログラムします。
 
-![](./image/nimble-traffic_image.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/nimble-traffic_image.png?raw=true)
 
 ### タグ付きバージョンをデプロイする
 
@@ -505,7 +505,7 @@ hey -z 30s -c 30 $WRITER_URL
 
 3. visualizer Web アプリを表示するブラウザーページに戻ります。ページにグラフがプロットされています。グラフには、緑と青の2本の線があります。 'green' サービスはトラフィックの約 10％ を受信して​​います。
 
-![](./image/visualizer_graph_4.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/visualizer_graph_4.png?raw=true)
 
 4. 別のトラフィック分割を構成し、トラフィックの 50％ を 'green' とタグ付けされたリビジョンに送信します。
 ```bash
@@ -639,9 +639,9 @@ Cloud Run リビジョンは、 [サービスアカウント](https://cloud.goog
 
 次の図は、metrics-writer インスタンスが Firestore に書き込むときに使用されるアプリケーションのデフォルトの資格情報アプローチを示しています。クライアントライブラリは、ランタイムサービスアカウントの ID トークンを自動的にフェッチし、それを Firestore リクエストに添付します。 Firestore API はリクエストを認証および承認し、サービスアカウントに Firestore への書き込みに適切な IAM 権限があることを確認します。
 
-![](./image/security_image.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/security_image.png?raw=true)
 
->デフォルトでは、Cloud Runリビジョンは Compute Engine のデフォルトサービスアカウント（PROJECT_NUMBER-compute@developer.gserviceaccount.com）を使用します。このアカウントには、プロジェクト[編集者]（https://cloud.google.com/iam/docs/understanding-roles#basic）IAM ロールがあります。これは、デフォルトで、Cloud Run リビジョンが Google Cloud プロジェクトのすべてのリソースへの読み取りおよび書き込みアクセス権を持っていることを意味します。
+>デフォルトでは、Cloud Runリビジョンは Compute Engine のデフォルトサービスアカウント `PROJECT_NUMBER-compute@developer.gserviceaccount.com` を使用します。このアカウントには、プロジェクト[編集者](https://cloud.google.com/iam/docs/understanding-roles#basic) IAM ロールがあります。これは、デフォルトで、Cloud Run リビジョンが Google Cloud プロジェクトのすべてのリソースへの読み取りおよび書き込みアクセス権を持っていることを意味します。
 
 デフォルトのサービスアカウントを使用する代わりに、ユーザーが管理するサービスアカウントを割り当てることにより、各サービスに[専用 ID](https://cloud.google.com/run/docs/securing/service-identity#per-service-identity) を付与することをお勧めします。ユーザー管理のサービスアカウントを使用すると、[IAM を使用して](https://cloud.google.com/iam/docs/creating-managing-service-accounts) 最小限の権限セットを付与することでアクセスを制御できます。
 
@@ -707,7 +707,7 @@ Instance not ready
 
 6. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。メトリックライターサービスをクリックし、'ログ'タブを選択します。
 
-![](./image/metrics-writer_logs.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/gig4-3/gig04-3/image/metrics-writer_logs.png?raw=true)
 
 PERMISSION_DENIEDエラーが表示されます。 エラートレースを見ると、エラーが Firestore に関連していることがわかります。 metrics-writer リビジョンのランタイムサービスアカウントとして割り当てた新しいサービスアカウントには、Firestore に書き込むための適切な権限がありません。
 
