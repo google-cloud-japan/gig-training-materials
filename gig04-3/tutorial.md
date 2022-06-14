@@ -7,7 +7,6 @@
 **なるべく新しいプロジェクトを作成してください。**
 
 <walkthrough-project-setup></walkthrough-project-setup>
-<walkthrough-watcher-constant key="region" value="asia-northeast1"></walkthrough-watcher-constant>
 
 ## **参考: Cloud Shell の接続が途切れてしまったときは?**
 
