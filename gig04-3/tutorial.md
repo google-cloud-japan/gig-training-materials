@@ -4,26 +4,19 @@
 
 ### Google Cloud プロジェクトの選択
 
-ハンズオンを行う Google Cloud プロジェクトを作成し、 Google Cloud プロジェクトを選択して **Start/開始** をクリックしてください。
+ハンズオンを行う Google Cloud プロジェクトをまだ作成されていない場合は、[こちらのリンク](https://console.cloud.google.com/projectcreate) から新しいプロジェクトを作成してください。
 
-**なるべく新しいプロジェクトを作成してください。**
+**なるべく新しいプロジェクトが望ましいです。**
 
-<walkthrough-project-setup></walkthrough-project-setup>
+それでは最初に、ハンズオンを進めるための環境準備を行います。
 
-最初に、ハンズオンを進めるための環境準備を行います。
-
-下記の設定を進めていきます。
-
-- gcloud コマンドラインツール設定
-- GCP 機能（API）有効化設定
-
-### gcloud コマンドラインツール設定
 #### GCP のプロジェクト ID を環境変数に設定
 
-環境変数 `GOOGLE_CLOUD_PROJECT` に GCP プロジェクト ID を設定します。
+環境変数 `PROJECT_ID` に GCP プロジェクト ID を設定します。[GOOGLE_CLOUD_PROJECT_ID] 部分にご使用になられる Google Cloud プロジェクトの ID を入力してください。
+例: `export PROJECT_ID=gig4-3`
 
 ```bash
-export GOOGLE_CLOUD_PROJECT="{{project-id}}"
+export PROJECT_ID=[GOOGLE_CLOUD_PROJECT_ID]
 ```
 
 #### CLI（gcloud コマンド）から利用する GCP のデフォルトプロジェクトを設定
@@ -31,7 +24,7 @@ export GOOGLE_CLOUD_PROJECT="{{project-id}}"
 操作対象のプロジェクトを設定します。
 
 ```bash
-gcloud config set project $GOOGLE_CLOUD_PROJECT
+gcloud config set project $PROJECT_ID
 ```
 
 デフォルトのリージョンを設定します。
