@@ -242,7 +242,7 @@ Service URL: https://metrics-writer-rmclwajz3a-an.a.run.app
 export WRITER_URL=$(gcloud run services describe metrics-writer --format='value(status.url)')
 ```
 
-3. metrics-writer サービスと対話できることを確認します。
+3. metrics-writer サービスに接続できることを確認します。
 ```bash
 curl $WRITER_URL
 ```
@@ -582,13 +582,13 @@ Hello from blue
 
 ### ingress ルールを適用する
 
-`--allow-unauthenticated` フラグを使用して metrics-writer Cloud Run サービスをデプロイしました。これにより、サービス URL がインターネット上で公開されます。誰でもあなたのサービスと直接対話することができます。
+`--allow-unauthenticated` フラグを使用して metrics-writer Cloud Run サービスをデプロイしました。これにより、サービス URL がインターネット上で公開され、誰でもあなたのサービスに接続することができます。
 
 このセクションでは、Cloud Run サービスで [上り（内向き）の設定](https://cloud.google.com/run/docs/securing/ingress) を設定して、ロードバランサーまたプロジェクトの VPC ネットワーク内部から発信されていないリクエストを拒否します。これにより、Cloud Run サービスの URL はインターネット上でパブリックにアクセスできません。
 
 ロードバランサーを介してすべてのリクエストを強制することで、[Cloud Armor](https://cloud.google.com/armor) や [Cloud CDN](https://cloud.google.com/cdn) などの追加のロードバランサー機能を利用することもできます。
 
-1. サービス URL を介して metrics-writer サービスと引き続き対話できることを確認します。
+1. サービス URL を介して metrics-writer サービスに引き続き接続できることを確認します。
 ```bash
 curl $WRITER_URL
 ```
@@ -606,8 +606,8 @@ curl $WRITER_URL
 
 サービス URL へのリクエストは拒否されます。 HTTP 403(禁止) エラーを説明する HTML ページが表示されます。インターネット上でサービス URL にアクセスできなくなりました。
 
-**Output (do not copy)**
-```html
+**Output**
+```terminal
 <html><head>
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
 <title>403 Forbidden</title>
@@ -619,7 +619,7 @@ curl $WRITER_URL
 </body></html>
 ```
 
-4. ロードバランサーを介してサービスと対話できることを確認します。
+4. ロードバランサーを介してサービスに接続できることを確認します。
 ```bash
 curl $LB_IP
 ```
@@ -794,8 +794,8 @@ curl $LB_IP
 
 HTTP 403 forbedden エラーが表示されます。これで、認証および承認されたユーザーのみがサービスを呼び出すことができます。
 
-**Output (do not copy)**
-```html
+**Output**
+```terminal
 <html><head>
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
 <title>403 Forbidden</title>
