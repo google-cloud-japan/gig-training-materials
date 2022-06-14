@@ -1,12 +1,56 @@
 # GIG ハンズオン (Cloud Native)
 
-## Google Cloud プロジェクトの選択
+## 環境準備
+
+### Google Cloud プロジェクトの選択
 
 ハンズオンを行う Google Cloud プロジェクトを作成し、 Google Cloud プロジェクトを選択して **Start/開始** をクリックしてください。
 
 **なるべく新しいプロジェクトを作成してください。**
 
 <walkthrough-project-setup></walkthrough-project-setup>
+
+最初に、ハンズオンを進めるための環境準備を行います。
+
+下記の設定を進めていきます。
+
+- gcloud コマンドラインツール設定
+- GCP 機能（API）有効化設定
+
+### gcloud コマンドラインツール設定
+#### GCP のプロジェクト ID を環境変数に設定
+
+環境変数 `GOOGLE_CLOUD_PROJECT` に GCP プロジェクト ID を設定します。
+
+```bash
+export GOOGLE_CLOUD_PROJECT="{{project-id}}"
+```
+
+#### CLI（gcloud コマンド）から利用する GCP のデフォルトプロジェクトを設定
+
+操作対象のプロジェクトを設定します。
+
+```bash
+gcloud config set project $GOOGLE_CLOUD_PROJECT
+```
+
+デフォルトのリージョンを設定します。
+
+```bash
+gcloud config set compute/region asia-northeast1
+```
+
+以下のコマンドで、現在の設定を確認できます。
+```bash
+gcloud config list
+```
+
+### ProTips
+gcloud コマンドには、config 設定をまとめて切り替える方法があります。
+アカウントやプロジェクト、デフォルトのリージョン、ゾーンの切り替えがまとめて切り替えられるので、おすすめの機能です。
+```bash
+gcloud config configurations list
+```
 
 ## **参考: Cloud Shell の接続が途切れてしまったときは?**
 
