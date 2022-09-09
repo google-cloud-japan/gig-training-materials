@@ -222,7 +222,6 @@ gcloud run deploy metrics-writer \
   --allow-unauthenticated \
   --image asia-northeast1-docker.pkg.dev/gig5-1/gig5-1/metrics-writer:latest
 ```
-
 以下のような出力が表示されます。
 
 **Output**
@@ -331,6 +330,7 @@ gcloud run services list
 ```bash
 hey -z 30s -c 30 $WRITER_URL
 ```
+オプションは、「30秒間(30s)に同時並列数 30 のリクエストを実行する」ということを意味しています。
 
 5. visualizer Web アプリを表示するブラウザーページに切り替えます。ページにグラフがプロットされています。 Cloud Run は、トラフィック量を処理するためにアクティブなインスタンスの数を急速に拡大しました。
 
@@ -509,7 +509,7 @@ hey -z 30s -c 30 $WRITER_URL
 
 4. 別のトラフィック分割を構成し、トラフィックの 50％ を 'green' とタグ付けされたリビジョンに送信します。
 ```bash
-gcloud beta run services update-traffic \
+gcloud run services update-traffic \
   metrics-writer --to-tags green=50
 ```
 
