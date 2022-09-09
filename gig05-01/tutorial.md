@@ -429,7 +429,7 @@ gcloud run services update metrics-writer \
 
 3. metrics-writer サービスの新しいリビジョンをデプロイします。 'green' というタグを指定します。 `--no-traffic` フラグを設定します。これは、トラフィックが新しいリビジョンにルーティングされないことを意味します。表示されるグラフの色を制御する LABEL 環境変数を設定します（環境変数はタグとはまったく関係がないことに注意してください）。
 ```bash
-gcloud beta run deploy metrics-writer \
+gcloud run deploy metrics-writer \
   --tag green \
   --no-traffic \
   --set-env-vars LABEL=green \
@@ -480,7 +480,7 @@ Cloud Run を使用すると、トラフィックを受信するリビジョン�
 
 1. トラフィック分割を構成し、トラフィックの 10％　を 'green' とタグ付けされたリビジョンに送信します。
 ```bash
-gcloud beta run services update-traffic \
+gcloud run services update-traffic \
   metrics-writer --to-tags green=10
 ```
 
