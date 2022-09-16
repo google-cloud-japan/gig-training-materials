@@ -672,7 +672,7 @@ Service [metrics-writer] revision [metrics-writer-00009-vos] has been deployed a
 
 4. トラフィックの 100％ を新しいリビジョンにルーティングします。 [REVISION_ID] を前のコマンドの新しいリビジョンの名前に置き換えます。
 ```bash
-gcloud run services update-traffic metrics-writer --to-revisions [REVISION_ID]=100
+gcloud run services update-traffic metrics-writer --to-latest
 ```
 
 5. ロードバランサーを介してサービスを呼び出し、詳細を出力します。
@@ -705,7 +705,7 @@ Instance not ready
 * Connection #0 to host 34.110.187.86 left intact
 ```
 
-6. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。メトリックライターサービスをクリックし、'ログ'タブを選択します。
+6. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。metrics-writer サービスをクリックし、'ログ'タブを選択します。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig05-01/image/metrics-writer_logs.png?raw=true)
 
