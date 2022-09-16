@@ -429,7 +429,7 @@ gcloud run services update metrics-writer \
 
 3. metrics-writer サービスの新しいリビジョンをデプロイします。 'green' というタグを指定します。 `--no-traffic` フラグを設定します。これは、トラフィックが新しいリビジョンにルーティングされないことを意味します。表示されるグラフの色を制御する LABEL 環境変数を設定します（環境変数はタグとはまったく関係がないことに注意してください）。
 ```bash
-gcloud run deploy metrics-writer \
+gcloud /run deploy metrics-writer \
   --tag green \
   --no-traffic \
   --set-env-vars LABEL=green \
@@ -670,12 +670,36 @@ Done.
 Service [metrics-writer] revision [metrics-writer-00009-vos] has been deployed and is serving 0 percent of traffic.
 ```
 
-4. トラフィックの 100％ を新しいリビジョンにルーティングします。 [REVISION_ID] を前のコマンドの新しいリビジョンの名前に置き換えます。
+4. 3. で作成された新しいリビジョンの名前を確認します。最も作成日時が新しいものを探します。
+```bash
+gcloud run revisions list \
+ --service metrics-writer
+```
+
+**Output**
+```terminal
+✔
+REVISION: metrics-writer-00007-pox
+ACTIVE:
+SERVICE: metrics-writer
+DEPLOYED: 2022-09-16 08:20:10 UTC
+DEPLOYED BY: xxxx@xxxxxxxxxxxxx
+
+✔
+REVISION: metrics-writer-00005-gus
+ACTIVE: yes
+SERVICE: metrics-writer
+DEPLOYED: 2022-09-16 08:16:34 UTC
+DEPLOYED BY: xxxx@xxxxxxxxxxxxx
+```
+
+
+5. トラフィックの 100％ を新しいリビジョンにルーティングします。 [REVISION_ID] を前のコマンドで得られた最も新しいリビジョンの名前に置き換えます。
 ```bash
 gcloud run services update-traffic metrics-writer --to-revisions [REVISION_ID]=100
 ```
 
-5. ロードバランサーを介してサービスを呼び出し、詳細を出力します。
+6. ロードバランサーを介してサービスを呼び出し、詳細を出力します。
 ```bash
 curl -v $LB_IP
 ```
@@ -705,13 +729,14 @@ Instance not ready
 * Connection #0 to host 34.110.187.86 left intact
 ```
 
-6. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。メトリックライターサービスをクリックし、'ログ'タブを選択します。
+
+7. クラウドコンソールの [Cloud Run セクション](https://console.cloud.google.com/run) にアクセスします。メトリックライターサービスをクリックし、'ログ'タブを選択します。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig05-01/image/metrics-writer_logs.png?raw=true)
 
 PERMISSION_DENIEDエラーが表示されます。 エラートレースを見ると、エラーが Firestore に関連していることがわかります。 metrics-writer リビジョンのランタイムサービスアカウントとして割り当てた新しいサービスアカウントには、Firestore に書き込むための適切な権限がありません。
 
-7. Cloud Shell に戻り、metrics-writer ランタイム ID として使用されるサービスアカウントに適切な Firestore IAM ロールを付与します。
+8. Cloud Shell に戻り、metrics-writer ランタイム ID として使用されるサービスアカウントに適切な Firestore IAM ロールを付与します。
 ```bash
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role roles/datastore.user \
@@ -731,9 +756,9 @@ bindings:
 ...
 ```
 
-8. IAM 権限が伝播するまで**1分**待ちます。
+9. IAM 権限が伝播するまで**1分**待ちます。
 
-9. サービスを再度呼び出します。 正常な応答を受け取ります。
+10. サービスを再度呼び出します。 正常な応答を受け取ります。
 ```bash
 curl $LB_IP
 ```
