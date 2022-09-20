@@ -670,7 +670,7 @@ Done.
 Service [metrics-writer] revision [metrics-writer-00009-vos] has been deployed and is serving 0 percent of traffic.
 ```
 
-4. トラフィックの 100％ を新しいリビジョンにルーティングします。 [REVISION_ID] を前のコマンドの新しいリビジョンの名前に置き換えます。
+4. トラフィックの 100％ を新しいリビジョンにルーティングします。 
 ```bash
 gcloud run services update-traffic metrics-writer --to-latest
 ```
