@@ -28,7 +28,7 @@
 
 今回のハンズオンでは以下のように、3 つのテーブルを利用します。これは、あるゲームの開発において、バックエンド データベースとして Cloud Spanner を使ったことを想定しており、ゲームのプレイヤー情報や、アイテム情報を管理するテーブルに相当するものを表現しています。
 
-![スキーマ](https://storage.googleapis.com/egg-resources/egg3/public/1-1.png "今回利用するスキーマ")
+![スキーマ](1-1.png "今回利用するスキーマ")
 
 このテーブルの DDL は以下のとおりです、実際にテーブルを CREATE する際に、この DDL は再度掲載します。
 
@@ -65,23 +65,23 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 
 ### **Cloud Spanner インスタンスの作成**
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/2-1.png)
+![](2-1.png)
 
 1. ナビゲーションメニューから「Spanner」を選択
 
-![](https://storage.cloud.google.com/egg-resources/egg4-2/public/2-2.png)
+![](2-2.png)
 
-2. 「インスタンスを作成」を選択
+1. 「インスタンスを作成」を選択 （注意：「無料トライアルを開始」を選ばない）
 
 ### **情報の入力**
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/2-3.png)
+![](2-3.png)
 
 以下の内容で設定して「作成」を選択します。
 1. インスタンス名：dev-instance
 2. インスタンスID：dev-instance
 3. 「リージョン」を選択
-4. 「asia-northeast1 (Tokyo) 」を選択
+4. 「asia-northeast1 (東京) 」、「asia-northeast2 (大阪) 」、「asia-southeast1 (シンガポール） 」、「asia-east1（台湾）」のうち講師から指定されたリージョンを選択
 5. コンピューティング容量の割り当て： 100
 6. 「作成」を選択
 
@@ -89,7 +89,7 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 以下の画面に遷移し、作成完了です。
 どのような情報が見られるか確認してみましょう。
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/2-4.png)
+![](2-4.png)
 
 ### **スケールアウトとスケールインについて**
 
@@ -98,7 +98,7 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 なお補足ですが、たとえ 1 ノード構成であっても裏は多重化されており、単一障害点がありません。ノード数は可用性の観点ではなく、純粋に性能の観点でのみ増減させることができます。
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/2-5.png)
+![](2-5.png)
 
 ## [演習] 3. 接続用テスト環境作成 Cloud Shell 上で構築
 
