@@ -28,7 +28,7 @@
 
 今回のハンズオンでは以下のように、3 つのテーブルを利用します。これは、あるゲームの開発において、バックエンド データベースとして Cloud Spanner を使ったことを想定しており、ゲームのプレイヤー情報や、アイテム情報を管理するテーブルに相当するものを表現しています。
 
-![スキーマ](https://storage.googleapis.com/egg-resources/egg3/public/1-1.png "今回利用するスキーマ")
+![スキーマ](img/1-1.png "今回利用するスキーマ")
 
 このテーブルの DDL は以下のとおりです、実際にテーブルを CREATE する際に、この DDL は再度掲載します。
 
@@ -65,23 +65,23 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 
 ### **Cloud Spanner インスタンスの作成**
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/2-1.png)
+![](img/2-1.png)
 
 1. ナビゲーションメニューから「Spanner」を選択
 
-![](https://storage.cloud.google.com/egg-resources/egg4-2/public/2-2.png)
+![](img/2-2.png)
 
-2. 「インスタンスを作成」を選択
+1. 「インスタンスを作成」を選択 （注意：「無料トライアルを開始」を選ばない）
 
 ### **情報の入力**
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/2-3.png)
+![](img/2-3.png)
 
 以下の内容で設定して「作成」を選択します。
 1. インスタンス名：dev-instance
 2. インスタンスID：dev-instance
 3. 「リージョン」を選択
-4. 「asia-northeast1 (Tokyo) 」を選択
+4. 「asia-northeast1 (東京) 」、「asia-northeast2 (大阪) 」、「asia-southeast1 (シンガポール） 」、「asia-east1（台湾）」のうち講師から指定されたリージョンを選択
 5. コンピューティング容量の割り当て： 100
 6. 「作成」を選択
 
@@ -89,7 +89,7 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 以下の画面に遷移し、作成完了です。
 どのような情報が見られるか確認してみましょう。
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/2-4.png)
+![](img/2-4.png)
 
 ### **スケールアウトとスケールインについて**
 
@@ -98,7 +98,7 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 なお補足ですが、たとえ 1 ノード構成であっても裏は多重化されており、単一障害点がありません。ノード数は可用性の観点ではなく、純粋に性能の観点でのみ増減させることができます。
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/2-5.png)
+![](img/2-5.png)
 
 ## [演習] 3. 接続用テスト環境作成 Cloud Shell 上で構築
 
@@ -106,11 +106,11 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 今回はハンズオンの冒頭で起動した Cloud Shell が開かれていると思います。今回のハンズオンで使うパスと、プロジェクト ID が正しく表示されていることを確認してください。以下のように、青文字のパスに続いて、かっこにくくられてプロジェクト ID が黄色文字で表示されています。このプロジェクト ID は各個人の環境でお使いのものに読み替えてください。
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/3-2.png)
+![](img/3-2.png)
 
 もしプロジェクトIDが表示されていない場合、以下の図の様に、青字のパスのみが表示されている状態だと思います。以下のコマンドを Cloud Shell で実行し、プロジェクトIDを設定してください。
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/3-3.png)
+![](img/3-3.png)
 
 ```bash
 gcloud config set project {{project-id}}
@@ -193,7 +193,7 @@ ls -la
 cloudshell edit main.go
 ```
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/4-1.png)
+![](img/4-1.png)
 
 このアプリケーションは、今回作成しているゲームで、新規ユーザーを登録するためのアプリケーションです。
 実行すると Web サーバーが起動します。
@@ -271,23 +271,27 @@ go install github.com/cloudspannerecosystem/spanner-cli@latest
 
 1つの Cloud Spanner インスタンスには、複数のデータベースを作成することができます。
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-1.png)
+|![](img/5-1.png)|
+|---|
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-2.png)
+|![](img/5-2.png)|
+|---|
 
 1. dev-instnace を選択すると画面が遷移します
 2. データベースを作成を選択します
 
 ### **データベース名の入力**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-3.png)
+![](img/5-3.png)
+
 名前に「player-db」を入力します。
 
 
 ### **データベーススキーマの定義**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-4.png)
-スキーマを定義する画面に遷移します。
+![](img/5-4.png)
+
+スキーマを定義する画面の操作を行います。
 
 1. のエリアに、以下の DDL を直接貼り付けます。
 
@@ -318,7 +322,7 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 
 ### **データベースの作成完了**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/5-5.png)
+![](img/5-5.png)
 
 うまくいくと、データベースが作成されると同時に 3 つのテーブルが生成されています。
 
@@ -394,9 +398,15 @@ randomId, _ := uuid.NewRandom()
 
 ### **GUI コンソールから player データ確認**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-0.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-1-1.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-1-2.png)
+|![](img/6-0.png)|
+|---|
+
+|![](img/6-1-1.png)|
+|---|
+
+|![](img/6-1-2.png)|
+|---|
+
 
 1. 対象テーブル「players」を選択
 2. 「データ」タブを選択
@@ -407,10 +417,10 @@ randomId, _ := uuid.NewRandom()
 
 ### **GUI コンソールから player_items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-1.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-2.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-3.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-2-4.png)
+![](img/6-2-1.png)
+![](img/6-2-2.png)
+![](img/6-2-3.png)
+![](img/6-2-4.png)
 
 続いて、データを書き込んでみます。この例では、生成されたプレイヤーに、アイテムを追加する想定です。
 
@@ -421,7 +431,7 @@ randomId, _ := uuid.NewRandom()
 
 ### **外部キー制約による挿入失敗の確認**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-3.png)
+![](img/6-3.png)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -433,14 +443,23 @@ randomId, _ := uuid.NewRandom()
 入力したら「実行」を選択します。
 以下のようなエラーが出るはずです。
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-4.png)
+![](img/6-4.png)
 
 ### **GUI コンソールから items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-1.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-2.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-3.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-5-4.png)
+|![](img/6-5-1.png)|
+|---|
+
+|![](img/6-5-2.png)|
+|---|
+
+|![](img/6-5-3.png)|
+|---|
+
+|![](img/6-5-4.png)|
+|---|
+
+
 
 item データを書き込んでみます。この例では、ゲーム全体として新たなアイテムを追加する想定です。
 
@@ -452,7 +471,7 @@ item データを書き込んでみます。この例では、ゲーム全体と
 
 ### **GUI コンソールから items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-6.png)
+![](img/6-6.png)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -464,7 +483,7 @@ item データを書き込んでみます。この例では、ゲーム全体と
 
 ### **GUI コンソールから player_items データ追加**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-7.png)
+![](img/6-7.png)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -478,10 +497,18 @@ item データを書き込んでみます。この例では、ゲーム全体と
 
 ### **GUI コンソールから player データの修正**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-1.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-2.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-3.png)
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-8-4.png)
+|![](img/6-8-1.png)|
+|---|
+
+|![](img/6-8-2.png)|
+|---|
+
+|![](img/6-8-3.png)|
+|---|
+
+|![](img/6-8-4.png)|
+|---|
+
 
 1. データベース player-db: 概要を選択
 2. テーブル 「players」を選択
@@ -491,7 +518,7 @@ item データを書き込んでみます。この例では、ゲーム全体と
  
 ### **GUI コンソールから player データの修正**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-9.png)
+![](img/6-9.png)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -504,10 +531,10 @@ item データを書き込んでみます。この例では、ゲーム全体と
 
 ### **SQL による items 及び player_items**
 
-![](https://storage.googleapis.com/egg-resources/egg4-2/public/6-10.png)
+![](img/6-10.png)
 
 1. メニュー(左欄)「クエリ」を選択
-2. 次ページの SQL を入力欄に貼り付け
+2. 次ページの入力欄に SQL を入力
 3. 「実行」を選択
 
 このように Cloud Console から任意の SQL を実行できます。
@@ -544,7 +571,7 @@ VALUES ('78120943-5b8e-4049-acf3-b6e070d017ea', 2, 5);
 spanner-cli -p $GOOGLE_CLOUD_PROJECT -i dev-instance -d player-db
 ```
 
-![](https://storage.googleapis.com/egg-resources/egg4/public/6-11.png)
+![](img/6-11.png)
 
 例えば、以下のような SELECT 文を実行し、プレイヤーが所持しているアイテム一覧を表示してみましょう。
 
