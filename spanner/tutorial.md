@@ -28,7 +28,7 @@
 
 今回のハンズオンでは以下のように、3 つのテーブルを利用します。これは、あるゲームの開発において、バックエンド データベースとして Cloud Spanner を使ったことを想定しており、ゲームのプレイヤー情報や、アイテム情報を管理するテーブルに相当するものを表現しています。
 
-![スキーマ](img/1-1.png "今回利用するスキーマ")
+![スキーマ](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/1-1.png?raw=true "今回利用するスキーマ")
 
 このテーブルの DDL は以下のとおりです、実際にテーブルを CREATE する際に、この DDL は再度掲載します。
 
