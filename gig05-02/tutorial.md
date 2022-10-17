@@ -21,7 +21,7 @@
 ### **前提条件**
 
 本ハンズオンははじめて Cloud Spanner を触れる方を想定しておりますが、Cloud Spanner の基本的なコンセプトや、主キーによって格納データが分散される仕組みなどは、ハンズオン中では説明しません。
-事前知識がなくとも本ハンズオンの進行には影響ありませんが、Cloud Spanner の基本コンセプトやデータ構造については、Coursera などの教材を使い学んでいただくことをお勧めします。 
+事前知識がなくとも本ハンズオンの進行には影響ありませんが、Cloud Spanner の基本コンセプトやデータ構造については、Coursera などの教材を使い学んでいただくことをお勧めします。
 
 
 ## [解説] 1. ハンズオンで使用するスキーマの説明
@@ -29,6 +29,8 @@
 今回のハンズオンでは以下のように、3 つのテーブルを利用します。これは、あるゲームの開発において、バックエンド データベースとして Cloud Spanner を使ったことを想定しており、ゲームのプレイヤー情報や、アイテム情報を管理するテーブルに相当するものを表現しています。
 
 ![スキーマ](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/1-1.png?raw=true "今回利用するスキーマ")
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/1-1.png?raw=true "今回利用するスキーマ")
 
 このテーブルの DDL は以下のとおりです、実際にテーブルを CREATE する際に、この DDL は再度掲載します。
 
@@ -67,15 +69,21 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-1.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-1.png?raw=true)
+
 1. ナビゲーションメニューから「Spanner」を選択
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-2.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-2.png?raw=true)
 
 1. 「インスタンスを作成」を選択 （注意：「無料トライアルを開始」を選ばない）
 
 ### **情報の入力**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-3.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-3.png?raw=true)
 
 以下の内容で設定して「作成」を選択します。
 1. インスタンス名：dev-instance
@@ -91,6 +99,8 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-4.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-4.png?raw=true)
+
 ### **スケールアウトとスケールインについて**
 
 Cloud Spanner インスタンスノード数を変更したい場合、編集画面を開いてノードの割り当て数を変更することで、かんたんに行われます
@@ -100,6 +110,8 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-5.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/2-5.png?raw=true)
+
 ## [演習] 3. 接続用テスト環境作成 Cloud Shell 上で構築
 
 作成した Cloud Spanner に対して各種コマンドを実行するために Cloud Shell を準備します。
@@ -108,9 +120,13 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/3-2.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/3-2.png?raw=true)
+
 もしプロジェクトIDが表示されていない場合、以下の図の様に、青字のパスのみが表示されている状態だと思います。以下のコマンドを Cloud Shell で実行し、プロジェクトIDを設定してください。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/3-3.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/3-3.png?raw=true)
 
 ```bash
 gcloud config set project {{project-id}}
@@ -147,7 +163,7 @@ pwd
 
 Cloud Spanner へのデータの読み書きには、様々な方法があります。
 
-### **クライアント ライブラリ を使用しアプリケーションを作成し読み書きする** 
+### **クライアント ライブラリ を使用しアプリケーションを作成し読み書きする**
 
 クライアント ライブラリ を使用しアプリケーションを作成し読み書きする方法が代表的なものであり、ゲームサーバー側のアプリケーション内では、`C++`, `C#`, `Go`, `Java`, `Node.js`, `PHP`, `Python`, `Ruby` といった各種言語用のクライアント ライブラリを用いて、Cloud Spanner をデータベースとして利用します。クライアント ライブラリ内では以下の方法で、Cloud Spanner のデータを読み書きすることができます。
 - アプリケーションのコード内で API を用いて読み書きする
@@ -155,17 +171,17 @@ Cloud Spanner へのデータの読み書きには、様々な方法がありま
 
 またトランザクションも実行することが可能で、リードライト トランザクションはシリアライザブルの分離レベルで実行でき、強い整合性を持っています。またリードオンリー トランザクションを実行することも可能で、トランザクション間の競合を減らし、ロックやそれに伴うトランザクションの abort を減らすことができます。
 
-### **Cloud Console の GUI または gcloud コマンドを利用する** 
+### **Cloud Console の GUI または gcloud コマンドを利用する**
 
 Cloud Console の GUI または gcloud コマンドを利用する方法もあります。こちらはデータベース管理者が、直接 SQL を実行したり、特定のデータを直接書き換える場合などに便利です。
- 
+
 ### **その他 Cloud Spanner 対応ツールを利用する**
 
 これは Cloud Spanner が直接提供するツールではありませんが、 `spanner-cli` と呼ばれる、対話的に SQL を発行できるツールがあります。これは Cloud Spanner Ecosystem と呼ばれる、Cloud Spanner のユーザーコミュニティによって開発メンテナスが行われているツールです。MySQL の mysql コマンドや、PostgreSQL の psql コマンドの様に使うことのできる、非常に便利なツールです。
 
 本ハンズオンでは、主に上記の方法で読み書きを試します。
 
-## [演習] 4. Cloud Spanner 接続クライアントの準備 
+## [演習] 4. Cloud Spanner 接続クライアントの準備
 
 ### **Cloud Spanner に書き込みをするアプリケーションのビルド**
 
@@ -194,6 +210,8 @@ cloudshell edit main.go
 ```
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/4-1.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/4-1.png?raw=true)
 
 このアプリケーションは、今回作成しているゲームで、新規ユーザーを登録するためのアプリケーションです。
 実行すると Web サーバーが起動します。
@@ -271,11 +289,13 @@ go install github.com/cloudspannerecosystem/spanner-cli@latest
 
 1つの Cloud Spanner インスタンスには、複数のデータベースを作成することができます。
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-1.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-1.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-2.png?raw=true)|
-|---|
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-1.png?raw=true)
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-2.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-2.png?raw=true)
 
 1. dev-instnace を選択すると画面が遷移します
 2. データベースを作成を選択します
@@ -284,12 +304,16 @@ go install github.com/cloudspannerecosystem/spanner-cli@latest
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-3.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-3.png?raw=true)
+
 名前に「player-db」を入力します。
 
 
 ### **データベーススキーマの定義**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-4.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-4.png?raw=true)
 
 スキーマを定義する画面の操作を行います。
 
@@ -323,6 +347,8 @@ INTERLEAVE IN PARENT players ON DELETE CASCADE;
 ### **データベースの作成完了**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-5.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/5-5.png?raw=true)
 
 うまくいくと、データベースが作成されると同時に 3 つのテーブルが生成されています。
 
@@ -398,15 +424,17 @@ randomId, _ := uuid.NewRandom()
 
 ### **GUI コンソールから player データ確認**
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-0.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-0.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-1-1.png?raw=true)|
-|---|
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-0.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-1-2.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-1-1.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-1-1.png?raw=true)
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-1-2.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-1-2.png?raw=true)
 
 1. 対象テーブル「players」を選択
 2. 「データ」タブを選択
@@ -418,9 +446,20 @@ randomId, _ := uuid.NewRandom()
 ### **GUI コンソールから player_items データ追加**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-1.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-1.png?raw=true)
+
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-2.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-2.png?raw=true)
+
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-3.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-3.png?raw=true)
+
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-4.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-2-4.png?raw=true)
 
 続いて、データを書き込んでみます。この例では、生成されたプレイヤーに、アイテムを追加する想定です。
 
@@ -433,6 +472,8 @@ randomId, _ := uuid.NewRandom()
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-3.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-3.png?raw=true)
+
 テーブルのカラムに合わせて値を入力します。
 
 - player_id：「データの書き込み - クラアントライブラリ」で控えた ID
@@ -444,22 +485,25 @@ randomId, _ := uuid.NewRandom()
 以下のようなエラーが出るはずです。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-4.png?raw=true)
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-4.png?raw=true)
 
 ### **GUI コンソールから items データ追加**
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-1.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-1.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-2.png?raw=true)|
-|---|
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-1.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-3.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-2.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-4.png?raw=true)|
-|---|
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-2.png?raw=true)
 
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-3.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-3.png?raw=true)
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-4.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-5-4.png?raw=true)
 
 item データを書き込んでみます。この例では、ゲーム全体として新たなアイテムを追加する想定です。
 
@@ -473,6 +517,8 @@ item データを書き込んでみます。この例では、ゲーム全体と
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-6.png?raw=true)
 
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-6.png?raw=true)
+
 テーブルのカラムに合わせて値を入力します。
 
 - item_id：1
@@ -484,6 +530,7 @@ item データを書き込んでみます。この例では、ゲーム全体と
 ### **GUI コンソールから player_items データ追加**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-7.png?raw=true)
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-7.png?raw=true)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -497,17 +544,21 @@ item データを書き込んでみます。この例では、ゲーム全体と
 
 ### **GUI コンソールから player データの修正**
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-1.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-1.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-2.png?raw=true)|
-|---|
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-1.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-3.png?raw=true)|
-|---|
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-2.png?raw=true)
 
-|![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-4.png?raw=true)|
-|---|
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-2.png?raw=true)
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-3.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-3.png?raw=true)
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-4.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-8-4.png?raw=true)
 
 
 1. データベース player-db: 概要を選択
@@ -515,10 +566,12 @@ item データを書き込んでみます。この例では、ゲーム全体と
 3. メニュー(左欄)「データ」を選択
 4. 追加されているユーザーのチェックボックスを選択
 5. 「編集」ボタンを選択
- 
+
 ### **GUI コンソールから player データの修正**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-9.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-9.png?raw=true)
 
 テーブルのカラムに合わせて値を入力します。
 
@@ -532,6 +585,8 @@ item データを書き込んでみます。この例では、ゲーム全体と
 ### **SQL による items 及び player_items**
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-10.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-10.png?raw=true)
 
 1. メニュー(左欄)「クエリ」を選択
 2. 次ページの入力欄に SQL を入力
@@ -572,6 +627,8 @@ spanner-cli -p $GOOGLE_CLOUD_PROJECT -i dev-instance -d player-db
 ```
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-11.png?raw=true)
+
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/spanner/img/6-11.png?raw=true)
 
 例えば、以下のような SELECT 文を実行し、プレイヤーが所持しているアイテム一覧を表示してみましょう。
 
