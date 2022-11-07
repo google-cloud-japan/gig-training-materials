@@ -1,8 +1,32 @@
-Hi, I am a WIP doc.
+### Hi, I am WIP.
 [元ネタ](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
 
 
 # [GIG ハンズオン] **Cloud Code、Cloud Build、Google Cloud Deploy、GKE を使用したアプリの開発と配信**
+
+## 目次 - Table of Contents
+- [Google Cloud プロジェクトの選択](##Google-Cloud-プロジェクトの選択)
+- [[解説] ハンズオンの内容と目的](##[解説]-ハンズオンの内容と目的)
+- [アーキテクチャの概要](##アーキテクチャの概要)
+- [目標](##目標)
+- [費用](##費用)
+- [環境を準備する](###HI,-I-am-WIP)
+  - [権限を設定する](###HI,-I-am-WIP)
+  - [GKEクラスタを作成する](###HI,-I-am-WIP)
+  - [IDEを開いてリポジトリのクローンを作成する](###HI,-I-am-WIP)
+  - [ソースコード用のリポジトリとコンテナ用のリポジトリを作成する](###HI,-I-am-WIP)
+- [CI / CD パイプラインを構成する](###HI,-I-am-WIP)
+- [デベロッパー ワークスペース内でアプリケーションを変更する](###HI,-I-am-WIP)
+  - [アプリケーションをビルドし、テストして、実行する](###HI,-I-am-WIP)
+  - [変更する](###HI,-I-am-WIP)
+  - [コードを commit する](###HI,-I-am-WIP)
+- [本番環境に変更をデプロイする](###HI,-I-am-WIP)
+  - [CI / CD パイプラインを開始してステージング環境にデプロイする](###HI,-I-am-WIP)
+  - [リリースを本番環境に昇格させる](###HI,-I-am-WIP)
+- [クリーンアップ](###HI,-I-am-WIP)
+  - [オプション1: プロジェクトを削除する](###HI,-I-am-WIP)
+- [オプション2: 個々のリソースを削除する](###HI,-I-am-WIP)
+- [次のステップ](###HI,-I-am-WIP)
 
 ## Google Cloud プロジェクトの選択
 
