@@ -16,13 +16,14 @@ Hi, I am a WIP doc.
 2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
 
 3. Artifact Registry, Cloud Build, Google Cloud Deploy, Cloud Source Repositories, Google Kubernetes Engine, Resource Manager, and Service Networking API を有効にします。
-[API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Ccontainer.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
+
+    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Ccontainer.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
 
 4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
 
-[Cloud Shell をアクティブにする](https://console.cloud.google.com/?cloudshell=true&hl=ja&_ga=2.144924279.2113702237.1667787342-853816604.1666918848)
+    [Cloud Shell をアクティブにする](https://console.cloud.google.com/?cloudshell=true&hl=ja&_ga=2.144924279.2113702237.1667787342-853816604.1666918848)
 
-Google Cloud コンソールの下部で [Cloud Shell](https://cloud.google.com/shell/docs/how-cloud-shell-works?hl=ja) セッションが開始し、コマンドライン プロンプトが表示されます。Cloud Shell はシェル環境です。Google Cloud CLI がすでにインストールされており、現在のプロジェクトの値もすでに設定されています。セッションが初期化されるまで数秒かかることがあります。
+    Google Cloud コンソールの下部で [Cloud Shell](https://cloud.google.com/shell/docs/how-cloud-shell-works?hl=ja) セッションが開始し、コマンドライン プロンプトが表示されます。Cloud Shell はシェル環境です。Google Cloud CLI がすでにインストールされており、現在のプロジェクトの値もすでに設定されています。セッションが初期化されるまで数秒かかることがあります。
 
 ## [解説] **ハンズオンの内容と目的**
 
