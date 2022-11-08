@@ -5,49 +5,28 @@
 [オリジナル公式ドキュメント](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
 
 ## 目次 - Table of Contents
-- [Google Cloud プロジェクトの選択](#google-cloud-プロジェクトの選択)
-- [[解説] ハンズオンの内容と目的](#解説-ハンズオンの内容と目的)
-- [アーキテクチャの概要](#アーキテクチャの概要)
-- [目標](#目標)
-- [費用](#費用)
-- [環境を準備する](#環境を準備する)
-  - [権限を設定する](#環境を準備する)
-  - [GKEクラスタを作成する](#gke-クラスタを作成する)
-  - [IDEを開いてリポジトリのクローンを作成する](#ide-を開いてリポジトリのクローンを作成する)
-  - [ソースコード用のリポジトリとコンテナ用のリポジトリを作成する](#ソースコード用のリポジトリとコンテナ用のリポジトリを作成する)
-- [CI / CD パイプラインを構成する](#ci--cd-パイプラインを構成する)
-- [デベロッパー ワークスペース内でアプリケーションを変更する](#デベロッパー-ワークスペース内でアプリケーションを変更する)
-  - [アプリケーションをビルドし、テストして、実行する](#アプリケーションをビルドしテストして実行する)
-  - [変更する](#変更する)
-  - [コードを commit する](#コードを-commit-する)
-- [本番環境に変更をデプロイする](#本番環境に変更をデプロイする)
-  - [CI / CD パイプラインを開始してステージング環境にデプロイする](#ci--cd-パイプラインを開始してステージング環境にデプロイする)
-  - [リリースを本番環境に昇格させる](#リリースを本番環境に昇格させる)
-- [クリーンアップ](#クリーンアップ)
-  - [オプション1: プロジェクトを削除する](#オプション-1-プロジェクトを削除する)
-  - [オプション2: 個々のリソースを削除する](#オプション-2-個のリソースを削除する)
-- [次のステップ](#次のステップ)
-
-## Google Cloud プロジェクトの選択
-
-1. ハンズオンを行う Google Cloud プロジェクトを作成し、 Google Cloud プロジェクトを選択して **Start/開始** をクリックしてください。
-
-**なるべく新しいプロジェクトを作成してください。**
-
-<walkthrough-project-setup>
-</walkthrough-project-setup>
-
-2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
-
-3. Artifact Registry, Cloud Build, Google Cloud Deploy, Cloud Source Repositories, Google Kubernetes Engine, Resource Manager, and Service Networking API を有効にします。
-
-    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Ccontainer.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
-
-4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
-
-    [Cloud Shell をアクティブにする](https://console.cloud.google.com/?cloudshell=true&hl=ja&_ga=2.144924279.2113702237.1667787342-853816604.1666918848)
-
-    Google Cloud コンソールの下部で [Cloud Shell](https://cloud.google.com/shell/docs/how-cloud-shell-works?hl=ja) セッションが開始し、コマンドライン プロンプトが表示されます。Cloud Shell はシェル環境です。Google Cloud CLI がすでにインストールされており、現在のプロジェクトの値もすでに設定されています。セッションが初期化されるまで数秒かかることがあります。
+- [解説] ハンズオンの内容と目的
+- アーキテクチャの概要
+- 目標
+- 費用
+- Google Cloud プロジェクトの選択
+- 環境を準備する
+  - 権限を設定する
+  - GKEクラスタを作成する
+  - IDEを開いてリポジトリのクローンを作成する
+  - ソースコード用のリポジトリとコンテナ用のリポジトリを作成する
+- CI / CD パイプラインを構成する
+- デベロッパー ワークスペース内でアプリケーションを変更する
+  - アプリケーションをビルドし、テストして、実行する
+  - 変更する
+  - コードを commit する
+- 本番環境に変更をデプロイする
+  - CI / CD パイプラインを開始してステージング環境にデプロイする
+  - リリースを本番環境に昇格させる
+- クリーンアップ
+  - オプション1: プロジェクトを削除する
+  - オプション2: 個々のリソースを削除する
+- 次のステップ
 
 ## [解説] **ハンズオンの内容と目的**
 
@@ -157,6 +136,27 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 [料金計算ツール](https://cloud.google.com/products/calculator?hl=ja)を使うと、予想使用量に基づいて費用の見積もりを生成できます。
 
 このチュートリアルを終了した後、作成したリソースを削除すると、それ以上の請求は発生しません。詳細については、[クリーンアップ](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja#clean-up)をご覧ください。
+
+## Google Cloud プロジェクトの選択
+
+1. ハンズオンを行う Google Cloud プロジェクトを作成し、 Google Cloud プロジェクトを選択して **Start/開始** をクリックしてください。
+
+**なるべく新しいプロジェクトを作成してください。**
+
+<walkthrough-project-setup>
+</walkthrough-project-setup>
+
+2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
+
+3. Artifact Registry, Cloud Build, Google Cloud Deploy, Cloud Source Repositories, Google Kubernetes Engine, Resource Manager, and Service Networking API を有効にします。
+
+    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Ccontainer.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
+
+4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
+
+    [Cloud Shell をアクティブにする](https://console.cloud.google.com/?cloudshell=true&hl=ja&_ga=2.144924279.2113702237.1667787342-853816604.1666918848)
+
+    Google Cloud コンソールの下部で [Cloud Shell](https://cloud.google.com/shell/docs/how-cloud-shell-works?hl=ja) セッションが開始し、コマンドライン プロンプトが表示されます。Cloud Shell はシェル環境です。Google Cloud CLI がすでにインストールされており、現在のプロジェクトの値もすでに設定されています。セッションが初期化されるまで数秒かかることがあります。
 
 ## **環境を準備する**
 
