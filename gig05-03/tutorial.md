@@ -1,6 +1,8 @@
 ### Hi, I am WIP.
 [元ネタ](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
 
+TODO: Add the instruction for setting up the environmental variables
+
 
 # [GIG ハンズオン] **Cloud Code、Cloud Build、Google Cloud Deploy、GKE を使用したアプリの開発と配信**
 
@@ -10,11 +12,11 @@
 - [アーキテクチャの概要](#アーキテクチャの概要)
 - [目標](#目標)
 - [費用](#費用)
-- [環境を準備する](#hi-i-am-wip)
-  - [権限を設定する](#hi-i-am-wip)
-  - [GKEクラスタを作成する](#hi-i-am-wip)
-  - [IDEを開いてリポジトリのクローンを作成する](#hi-i-am-wip)
-  - [ソースコード用のリポジトリとコンテナ用のリポジトリを作成する](#hi-i-am-wip)
+- [環境を準備する](#環境を準備する)
+  - [権限を設定する](#環境を準備する)
+  - [GKEクラスタを作成する](#gke-クラスタを作成する)
+  - [IDEを開いてリポジトリのクローンを作成する](#ide-を開いてリポジトリのクローンを作成する)
+  - [ソースコード用のリポジトリとコンテナ用のリポジトリを作成する](#ソースコード用のリポジトリとコンテナ用のリポジトリを作成する)
 - [CI / CD パイプラインを構成する](#hi-i-am-wip)
 - [デベロッパー ワークスペース内でアプリケーションを変更する](#hi-i-am-wip)
   - [アプリケーションをビルドし、テストして、実行する](#hi-i-am-wip)
@@ -158,3 +160,173 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 
 このチュートリアルを終了した後、作成したリソースを削除すると、それ以上の請求は発生しません。詳細については、[クリーンアップ](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja#clean-up)をご覧ください。
 
+## **環境を準備する**
+
+このセクションでは、アプリケーション オペレーターとして、次の処理を行います。
+
+- 必要な権限を設定する。
+- ステージング環境と本番環境用の GKE クラスタを作成する。
+- ソース リポジトリのクローンを作成する
+- ソースコード用のリポジトリを Cloud Source Repositories に作成する。
+- コンテナ アプリケーション用のリポジトリを Artifact Registry に作成します。
+
+### **権限を設定する**
+
+このセクションでは、CI / CD パイプラインの設定に必要な権限を付与します。
+
+1. Cloud Shell エディタの新しいインスタンスで作業している場合は、このチュートリアルで使用するプロジェクトを指定します。
+
+```sh
+gcloud config set project PROJECT_ID
+```
+
+*PROJECT_ID* は、このチュートリアルで選択または作成したプロジェクトの ID に置き換えます。
+
+ダイアログが表示された場合は、[承認] をクリックします。
+
+2. 必要なサービス アカウントを設定し、必要な権限を付与します。
+
+  - このチュートリアルで Cloud Build と Google Cloud Deploy で使用するデフォルトの Compute Engine サービス アカウントに十分な権限が付与されていることを確認します。
+
+    このサービス アカウントにはすでに必要な権限が付与されている場合があります。これは、デフォルトのサービス アカウントに対する自動のロール付与を無効にするプロジェクト向けのステップです。
+
+```sh
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+    --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+    --role="roles/clouddeploy.jobRunner"
+```
+
+  - Google Cloud Deploy を使用してデプロイを呼び出し、配信パイプラインとターゲットの定義を更新する Cloud Build サービス アカウント権限を付与します。
+
+```sh
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+    --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
+    --role="roles/clouddeploy.operator"
+```
+
+    この IAM ロールの詳細については、[clouddeploy.operator](https://cloud.google.com/deploy/docs/iam-roles-permissions?hl=ja#predefined_roles) ロールをご覧ください。
+
+  - Cloud Build と Google Cloud Deploy のサービス アカウント権限を付与して GKE にデプロイします。
+
+```sh
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+    --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+    --role="roles/container.admin"
+```
+
+    この IAM ロールの詳細については、[container.admin](https://cloud.google.com/iam/docs/understanding-roles?hl=ja#kubernetes-engine-roles) ロールをご覧ください。
+
+  - Cloud Build サービス アカウントに、Google Cloud Deploy オペレーションの呼び出しに必要な権限を付与します。
+
+```sh
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+    --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
+    --role="roles/iam.serviceAccountUser"
+```
+
+    Cloud Build は、Google Cloud Deploy を呼び出すときに、Compute Engine サービス アカウントを使用してリリースを作成します。そのため、この権限が必要になります。
+
+    この IAM ロールの詳細については、[iam.serviceAccountUser](https://cloud.google.com/compute/docs/access/iam?hl=ja#the_serviceaccountuser_role) ロールをご覧ください。
+
+これで、CI / CD パイプラインに必要な権限が付与されました。
+
+### **GKE クラスタを作成する**
+このセクションでは、ステージング環境と本番環境（どちらも GKE クラスタ）を作成します（minikube を使用するため、ここで開発クラスタの設定を行う必要はありません）。
+
+1. ステージング環境と本番環境用の GKE クラスタを作成します。
+
+```sh
+gcloud container clusters create-auto staging \
+    --region us-central1 \
+    --project=$(gcloud config get-value project) \
+    --async
+```
+```sh
+gcloud container clusters create-auto prod \
+    --region us-central1 \
+    --project=$(gcloud config get-value project) \
+    --async
+```
+
+  ステージング クラスタでは、コードの変更をテストします。ステージング環境のデプロイがアプリケーションに悪影響を及ぼさないことを確認したら、本番環境にデプロイします。
+
+2. 次のコマンドを実行して、ステージング環境のクラスタと本番環境クラスタの両方の出力が STATUS: RUNNING であることを確認します。
+
+```sh
+gcloud container clusters list
+```
+
+3. ステージング環境のクラスタと本番環境クラスタの kubeconfig ファイルの認証情報を取得します。
+
+    これらの認証情報を使用して GKE クラスタと情報を交換します。たとえば、アプリケーションが正しく実行されているかどうかを確認します。
+
+```sh
+gcloud container clusters get-credentials staging --region us-central1
+```
+```sh
+gcloud container clusters get-credentials prod --region us-central1
+```
+
+ステージング環境と本番環境の GKE クラスタが作成されました。
+
+### **IDE を開いてリポジトリのクローンを作成する**
+
+リポジトリのクローンを作成して、開発環境でアプリケーションを表示するには、次の操作を行います。
+
+1. [リポジトリのクローンを作成し、Cloud Shell で開きます](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fgoogle%2Fgolden-path-for-app-delivery&cloudshell_git_branch=main&cloudshell_open_in_editor=README.md&hl=ja)。
+
+2. [Confirm] をクリックします。
+
+    Cloud Shell エディタが開き、サンプル リポジトリのクローンが作成されます。
+
+    Cloud Shell エディタでアプリケーションのコードを表示できるようになりました。
+
+3. このチュートリアルで使用するプロジェクトを指定します。
+
+```sh
+gcloud config set project PROJECT_ID
+```
+
+    ダイアログが表示された場合は、[承認] をクリックします。
+
+これで、開発環境にアプリケーションのソースコードが作成されました。
+
+このソース リポジトリには、CI / CD パイプラインに必要な Cloud Build ファイルと Google Cloud Deploy ファイルが含まれています。
+
+### **ソースコード用のリポジトリとコンテナ用のリポジトリを作成する**
+
+このセクションでは、ソースコード用のリポジトリを Cloud Source Repositories に設定し、CI / CD パイプラインによってビルドされたコンテナを格納する Artifact Registry にリポジトリを設定します。
+
+1. Cloud Source Repositories で、ソースコードを格納するリポジトリを作成し、CI / CD プロセスにリンクします。
+
+```sh
+gcloud source repos create cicd-sample
+```
+
+2. Google Cloud Deploy 構成のターゲットが適切なプロジェクトであることを確認します。
+
+```sh
+sed -i s/project-id-placeholder/$(gcloud config get-value project)/g deploy/*
+git config --global credential.https://source.developers.google.com.helper gcloud.sh
+git remote add google https://source.developers.google.com/p/$(gcloud config get-value project)/r/cicd-sample
+```
+
+3. ソースコードをリポジトリに push します。
+
+```sh
+git push --all google
+```
+
+4. Artifact Registry にイメージ リポジトリを作成します。
+
+```sh
+gcloud artifacts repositories create cicd-sample-repo \
+    --repository-format=Docker \
+    --location us-central1
+```
+
+これで、Cloud Source Repositories にソースコードのリポジトリが作成され、Artifact Registry にアプリケーション コンテナのリポジトリが作成されました。Cloud Source Repositories リポジトリを使用すると、ソースコードのクローンを作成して CI / CD パイプラインに接続できます。
