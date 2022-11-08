@@ -1,10 +1,8 @@
-### Hi, I am WIP.
-[元ネタ](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
-
-TODO: Add the instruction for setting up the environmental variables
-
+<!-- TODO: Add the instruction for setting up the environmental variables? -->
 
 # [GIG ハンズオン] **Cloud Code、Cloud Build、Google Cloud Deploy、GKE を使用したアプリの開発と配信**
+
+[オリジナル公式ドキュメント](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
 
 ## 目次 - Table of Contents
 - [Google Cloud プロジェクトの選択](#google-cloud-プロジェクトの選択)
@@ -25,10 +23,10 @@ TODO: Add the instruction for setting up the environmental variables
 - [本番環境に変更をデプロイする](#本番環境に変更をデプロイする)
   - [CI / CD パイプラインを開始してステージング環境にデプロイする](#ci--cd-パイプラインを開始してステージング環境にデプロイする)
   - [リリースを本番環境に昇格させる](#リリースを本番環境に昇格させる)
-- [クリーンアップ](#hi-i-am-wip)
-  - [オプション1: プロジェクトを削除する](#hi-i-am-wip)
-  - [オプション2: 個々のリソースを削除する](#hi-i-am-wip)
-- [次のステップ](#hi-i-am-wip)
+- [クリーンアップ](#クリーンアップ)
+  - [オプション1: プロジェクトを削除する](#オプション-1-プロジェクトを削除する)
+  - [オプション2: 個々のリソースを削除する](#オプション-2-個のリソースを削除する)
+- [次のステップ](#次のステップ)
 
 ## Google Cloud プロジェクトの選択
 
@@ -619,3 +617,82 @@ curl -s http://localhost:8002/api/v1/namespaces/default/services/cicd-sample:808
   - 最初のタブで `Control+C` を押して、プロキシを停止します。
 
 これで昇格して、本番環境へのデプロイが承認されました。最近変更したアプリケーションは、本番環境で動作するようになりました。
+
+## クリーンアップ
+
+このチュートリアルで使用したリソースについて、Google Cloud アカウントに課金されないようにするには、リソースを含むプロジェクトを削除するか、プロジェクトを維持して個々のリソースを削除します。
+
+### オプション 1: プロジェクトを削除する
+
+⚠️⚠️⚠️ **注意**: プロジェクトを削除すると、次のような影響があります。
+
+  - **プロジェクト内のすべてのものが削除されます**。このチュートリアルで既存のプロジェクトを使用した場合、それを削除すると、そのプロジェクトで行った他の作業もすべて削除されます。
+
+  - **カスタム プロジェクト ID が失われます**。このプロジェクトを作成したときに、将来使用するカスタム プロジェクト ID を作成した可能性があります。そのプロジェクト ID を使用した URL（たとえば、appspot.com）を保持するには、プロジェクト全体ではなくプロジェクト内の選択したリソースだけを削除します。
+
+複数のチュートリアルとクイックスタートを検討する予定がある場合は、プロジェクトを再利用すると、プロジェクトの割り当て制限を超えないようにできます。
+
+#### 1. Google Cloud コンソールで、[リソースの管理] ページに移動します。
+[[リソースの管理] に移動](https://console.cloud.google.com/iam-admin/projects?hl=ja&_ga=2.182220388.2113702237.1667787342-853816604.1666918848)
+
+#### 2. プロジェクト リストで、削除するプロジェクトを選択し、[削除] をクリックします。
+
+#### 3. ダイアログでプロジェクト ID を入力し、[シャットダウン] をクリックしてプロジェクトを削除します。
+
+### オプション 2: 個々のリソースを削除する
+
+#### 1. Google Cloud Deploy パイプラインを削除します。
+
+```sh
+gcloud deploy delivery-pipelines delete cicd-sample --region=us-central1 --force
+```
+
+#### 2. Cloud Build トリガーを削除します。
+
+```sh
+gcloud beta builds triggers delete cicd-sample-main
+```
+
+#### 3. ステージング クラスタと本番環境クラスタを削除します。
+
+```sh
+gcloud container clusters delete staging
+```
+```sh
+gcloud container clusters delete prod
+```
+
+#### 4. Cloud Source Repositories でリポジトリを削除します。
+
+```sh
+gcloud source repos delete cicd-sample
+```
+
+#### 5. Cloud Storage バケットを削除します。
+
+```sh
+gsutil rm -r gs://$(gcloud config get-value project)-gceme-artifacts/
+```
+```sh
+gsutil rm -r gs://$(gcloud config get-value project)_clouddeploy/
+```
+
+#### 6. Artifact Registry のリポジトリを削除します。
+
+```sh
+gcloud artifacts repositories delete cicd-sample-repo \
+    --location us-central1
+```
+
+## 次のステップ
+
+- プライベート GKE インスタンスにデプロイする方法については、[Virtual Private Cloud ネットワークの限定公開クラスタへのデプロイ](https://cloud.google.com/deploy/docs/execution-environment?hl=ja#deploying_to_a_private_cluster_on_a_network)をご覧ください。
+
+- デプロイの自動化に関するベスト プラクティスについては、以下をご覧ください。
+  - [DevOps 技術: デプロイ自動化](https://cloud.google.com/architecture/devops/devops-tech-deployment-automation?hl=ja)。デプロイの自動化を実装、改善、測定する方法。
+  - Architecture Framework からの[デプロイの自動化](https://cloud.google.com/architecture/framework/operational-excellence/automate-your-deployments?hl=ja)。
+- デプロイ戦略の詳細については、以下をご覧ください。
+  - アーキテクチャ フレームワークから[デプロイを段階的に実行する](https://cloud.google.com/architecture/framework/operational-excellence/automate-your-deployments?hl=ja#launch_deployments_gradually)。
+  - [アプリケーションのデプロイとテストの戦略](https://cloud.google.com/architecture/application-deployment-and-testing-strategies?hl=ja)
+  - [GKE でのデプロイとテストの戦略の実装](https://cloud.google.com/architecture/implementing-deployment-and-testing-strategies-on-gke?hl=ja)のチュートリアル。
+- [Cloud アーキテクチャ センター](https://cloud.google.com/architecture?hl=ja)で、その他のリファレンス アーキテクチャ、図、チュートリアル、ベスト プラクティスを確認する。
