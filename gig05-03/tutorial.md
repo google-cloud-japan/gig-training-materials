@@ -17,7 +17,7 @@ TODO: Add the instruction for setting up the environmental variables
   - [GKEクラスタを作成する](#gke-クラスタを作成する)
   - [IDEを開いてリポジトリのクローンを作成する](#ide-を開いてリポジトリのクローンを作成する)
   - [ソースコード用のリポジトリとコンテナ用のリポジトリを作成する](#ソースコード用のリポジトリとコンテナ用のリポジトリを作成する)
-- [CI / CD パイプラインを構成する](#hi-i-am-wip)
+- [CI / CD パイプラインを構成する](#ci--cd-パイプラインを構成する)
 - [デベロッパー ワークスペース内でアプリケーションを変更する](#hi-i-am-wip)
   - [アプリケーションをビルドし、テストして、実行する](#hi-i-am-wip)
   - [変更する](#hi-i-am-wip)
@@ -330,3 +330,65 @@ gcloud artifacts repositories create cicd-sample-repo \
 ```
 
 これで、Cloud Source Repositories にソースコードのリポジトリが作成され、Artifact Registry にアプリケーション コンテナのリポジトリが作成されました。Cloud Source Repositories リポジトリを使用すると、ソースコードのクローンを作成して CI / CD パイプラインに接続できます。
+
+## **CI / CD パイプラインを構成する**
+
+このセクションでは、アプリケーション オペレータとして機能し、CI/CD パイプラインを構成します。パイプラインは、CI の場合は Cloud Build、CD の場合は Google Cloud Deploy を使用します。パイプラインのステップは、Cloud Build トリガーで定義されます。
+
+### 1. Cloud Build 用 Cloud Storage バケット作成
+
+Cloud Build 用の Cloud Storage バケットを作成して `artifacts.json` ファイル（Skaffold によってビルドごとに生成されたアーティファクトを追跡）を保存します。
+
+```sh
+gsutil mb gs://$(gcloud config get-value project)-gceme-artifacts/
+```
+
+トレースを簡単に行えるため、各ビルドの `artifacts.json` ファイルを 1 か所に保存することをおすすめします。これにより、トラブルシューティングが容易になります。
+
+### 2. `cloudbuild.yaml` ファイル確認
+
+`cloudbuild.yaml` ファイルを確認します。これは Cloud Build トリガーを定義し、クローン作成したソース リポジトリですでに構成されています。
+
+このファイルで、ソースコード リポジトリのメインブランチに対して新しい push が行われるたびに呼び出されるトリガーが定義されます。
+
+  CI / CD パイプラインの手順は、このファイルで定義されています。
+
+- Cloud Build は、Skaffold を使用してアプリケーション コンテナをビルドします。
+
+- Cloud Build がビルドの `artifacts.json` ファイルを Cloud Storage バケットに配置します。
+
+- Cloud Build がアプリケーション コンテナを Artifact Registry に配置します。
+
+- Cloud Build がアプリケーション コンテナでテストを実行します。
+
+- `gcloud beta deploy apply` コマンドは、次のファイルを Google Cloud Deploy サービスに登録します。
+
+  - 配信パイプラインである `deploy/pipeline.yaml`
+  - ターゲット ファイルである `deploy/staging.yaml` と `deploy/prod.yaml`
+
+      ファイルが登録されると、Google Cloud Deploy はパイプラインとターゲットが存在しない場合は作成し、構成が変更された場合には再作成します。ターゲットは、ステージング環境と本番環境です。
+
+- Google Cloud Deploy では、デリバリー パイプライン用の新しいリリースが作成されます。
+
+  このリリースでは、CI プロセスでビルドとテストが行われたアプリケーション コンテナが参照されています。
+
+-  Google Cloud Deploy により、リリースがステージング環境にデプロイされます。
+
+デリバリー パイプラインとターゲットは Google Cloud Deploy によって管理され、ソースコードから切り離されます。この分離により、アプリケーションのソースコードが変更されたときに配信パイプラインとターゲット ファイルを更新する必要がなくなります。
+
+### 3. Cloud Build トリガーを作成する
+
+```sh
+gcloud beta builds triggers create cloud-source-repositories \
+    --name="cicd-sample-main" \
+    --repo="cicd-sample" \
+    --branch-pattern="main" \
+    --build-config="cloudbuild.yaml"
+```
+
+このトリガーは、Cloud Build にソース リポジトリを監視するように指示し、`cloudbuild.yaml` ファイルを使用してリポジトリに対する変更に対応します。このトリガーは、メインブランチに新しい push があるたびに呼び出されます。
+
+### 4. ビルドがないことを確認
+[Cloud Build](https://console.cloud.google.com/cloud-build/dashboard?hl=ja&_ga=2.241990337.2113702237.1667787342-853816604.1666918848) に移動して、アプリケーションのビルドがないことを確認します。
+
+これで CI パイプラインと CD パイプラインが設定され、リポジトリのメインブランチでトリガーが作成されました。
