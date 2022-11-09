@@ -175,11 +175,11 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 1. Cloud Shell エディタの新しいインスタンスで作業している場合は、このチュートリアルで使用するプロジェクトを指定します。
 
 ```sh
-export PROJECT_ID={{project-id}}
+export PROJECT_ID=<walkthrough-project-id/>
 gcloud config set project $PROJECT_ID
 ```
 
-*PROJECT_ID* は、このチュートリアルで選択または作成したプロジェクトの ID ( <walkthrough-project-id/> )に置き換えます。
+*PROJECT_ID* は、このチュートリアルで選択または作成したプロジェクトの ID ( <walkthrough-project-id/> )を設定します。
 
 ダイアログが表示された場合は、[承認] をクリックします。
 
