@@ -175,10 +175,11 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 1. Cloud Shell エディタの新しいインスタンスで作業している場合は、このチュートリアルで使用するプロジェクトを指定します。
 
 ```sh
-gcloud config set project PROJECT_ID
+export PROJECT_ID={{project-id}}
+gcloud config set project $PROJECT_ID
 ```
 
-*PROJECT_ID* は、このチュートリアルで選択または作成したプロジェクトの ID に置き換えます。
+*PROJECT_ID* は、このチュートリアルで選択または作成したプロジェクトの ID ( <walkthrough-project-id/> )に置き換えます。
 
 ダイアログが表示された場合は、[承認] をクリックします。
 
@@ -189,8 +190,8 @@ gcloud config set project PROJECT_ID
     このサービス アカウントにはすでに必要な権限が付与されている場合があります。これは、デフォルトのサービス アカウントに対する自動のロール付与を無効にするプロジェクト向けのステップです。
 
 ```sh
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
     --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
     --role="roles/clouddeploy.jobRunner"
 ```
@@ -198,8 +199,8 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
   - Google Cloud Deploy を使用してデプロイを呼び出し、配信パイプラインとターゲットの定義を更新する Cloud Build サービス アカウント権限を付与します。
 
 ```sh
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
     --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
     --role="roles/clouddeploy.operator"
 ```
@@ -209,8 +210,8 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
   - Cloud Build と Google Cloud Deploy のサービス アカウント権限を付与して GKE にデプロイします。
 
 ```sh
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
     --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
     --role="roles/container.admin"
 ```
@@ -220,8 +221,8 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
   - Cloud Build サービス アカウントに、Google Cloud Deploy オペレーションの呼び出しに必要な権限を付与します。
 
 ```sh
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe PROJECT_ID \
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
     --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
     --role="roles/iam.serviceAccountUser"
 ```
@@ -286,7 +287,8 @@ gcloud container clusters get-credentials prod --region us-central1
 3. このチュートリアルで使用するプロジェクトを指定します。
 
 ```sh
-gcloud config set project PROJECT_ID
+export PROJECT_ID={{project-id}}
+gcloud config set project $PROJECT_ID
 ```
 
     ダイアログが表示された場合は、[承認] をクリックします。
@@ -656,10 +658,10 @@ gcloud beta builds triggers delete cicd-sample-main
 #### 3. ステージング クラスタと本番環境クラスタを削除します。
 
 ```sh
-gcloud container clusters delete staging
+gcloud container clusters delete staging --region us-central1
 ```
 ```sh
-gcloud container clusters delete prod
+gcloud container clusters delete prod --region us-central1
 ```
 
 #### 4. Cloud Source Repositories でリポジトリを削除します。
