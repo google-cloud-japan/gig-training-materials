@@ -189,43 +189,43 @@ gcloud config set project $PROJECT_ID
 
     このサービス アカウントにはすでに必要な権限が付与されている場合があります。これは、デフォルトのサービス アカウントに対する自動のロール付与を無効にするプロジェクト向けのステップです。
 
-```sh
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
-    --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
-    --role="roles/clouddeploy.jobRunner"
-```
+    ```sh
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+        --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
+        --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+        --role="roles/clouddeploy.jobRunner"
+    ```
 
   - Google Cloud Deploy を使用してデプロイを呼び出し、配信パイプラインとターゲットの定義を更新する Cloud Build サービス アカウント権限を付与します。
 
-```sh
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
-    --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
-    --role="roles/clouddeploy.operator"
-```
+    ```sh
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+        --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
+        --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
+        --role="roles/clouddeploy.operator"
+    ```
 
     この IAM ロールの詳細については、[clouddeploy.operator](https://cloud.google.com/deploy/docs/iam-roles-permissions?hl=ja#predefined_roles) ロールをご覧ください。
 
   - Cloud Build と Google Cloud Deploy のサービス アカウント権限を付与して GKE にデプロイします。
 
-```sh
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
-    --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
-    --role="roles/container.admin"
-```
+    ```sh
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+        --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
+        --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+        --role="roles/container.admin"
+    ```
 
     この IAM ロールの詳細については、[container.admin](https://cloud.google.com/iam/docs/understanding-roles?hl=ja#kubernetes-engine-roles) ロールをご覧ください。
 
   - Cloud Build サービス アカウントに、Google Cloud Deploy オペレーションの呼び出しに必要な権限を付与します。
 
-```sh
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
-    --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
-    --role="roles/iam.serviceAccountUser"
-```
+    ```sh
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+        --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
+        --format="value(projectNumber)")@cloudbuild.gserviceaccount.com \
+        --role="roles/iam.serviceAccountUser"
+    ```
 
     Cloud Build は、Google Cloud Deploy を呼び出すときに、Compute Engine サービス アカウントを使用してリリースを作成します。そのため、この権限が必要になります。
 
@@ -238,37 +238,37 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 1. ステージング環境と本番環境用の GKE クラスタを作成します。
 
-```sh
-gcloud container clusters create-auto staging \
-    --region us-central1 \
-    --project=$(gcloud config get-value project) \
-    --async
-```
-```sh
-gcloud container clusters create-auto prod \
-    --region us-central1 \
-    --project=$(gcloud config get-value project) \
-    --async
-```
+    ```sh
+    gcloud container clusters create-auto staging \
+        --region us-central1 \
+        --project=$(gcloud config get-value project) \
+        --async
+    ```
+    ```sh
+    gcloud container clusters create-auto prod \
+        --region us-central1 \
+        --project=$(gcloud config get-value project) \
+        --async
+    ```
 
   ステージング クラスタでは、コードの変更をテストします。ステージング環境のデプロイがアプリケーションに悪影響を及ぼさないことを確認したら、本番環境にデプロイします。
 
 2. 次のコマンドを実行して、ステージング環境のクラスタと本番環境クラスタの両方の出力が STATUS: RUNNING であることを確認します。
 
-```sh
-gcloud container clusters list
-```
+    ```sh
+    gcloud container clusters list
+    ```
 
 3. ステージング環境のクラスタと本番環境クラスタの kubeconfig ファイルの認証情報を取得します。
 
     これらの認証情報を使用して GKE クラスタと情報を交換します。たとえば、アプリケーションが正しく実行されているかどうかを確認します。
 
-```sh
-gcloud container clusters get-credentials staging --region us-central1
-```
-```sh
-gcloud container clusters get-credentials prod --region us-central1
-```
+    ```sh
+    gcloud container clusters get-credentials staging --region us-central1
+    ```
+    ```sh
+    gcloud container clusters get-credentials prod --region us-central1
+    ```
 
 ステージング環境と本番環境の GKE クラスタが作成されました。
 
@@ -286,10 +286,10 @@ gcloud container clusters get-credentials prod --region us-central1
 
 3. このチュートリアルで使用するプロジェクトを指定します。
 
-```sh
-export PROJECT_ID={{project-id}}
-gcloud config set project $PROJECT_ID
-```
+    ```sh
+    export PROJECT_ID={{project-id}}
+    gcloud config set project $PROJECT_ID
+    ```
 
     ダイアログが表示された場合は、[承認] をクリックします。
 
@@ -303,31 +303,31 @@ gcloud config set project $PROJECT_ID
 
 1. Cloud Source Repositories で、ソースコードを格納するリポジトリを作成し、CI / CD プロセスにリンクします。
 
-```sh
-gcloud source repos create cicd-sample
-```
+    ```sh
+    gcloud source repos create cicd-sample
+    ```
 
 2. Google Cloud Deploy 構成のターゲットが適切なプロジェクトであることを確認します。
 
-```sh
-sed -i s/project-id-placeholder/$(gcloud config get-value project)/g deploy/*
-git config --global credential.https://source.developers.google.com.helper gcloud.sh
-git remote add google https://source.developers.google.com/p/$(gcloud config get-value project)/r/cicd-sample
-```
+    ```sh
+    sed -i s/project-id-placeholder/$(gcloud config get-value project)/g deploy/*
+    git config --global credential.https://source.developers.google.com.helper gcloud.sh
+    git remote add google https://source.developers.google.com/p/$(gcloud config get-value project)/r/cicd-sample
+    ```
 
 3. ソースコードをリポジトリに push します。
 
-```sh
-git push --all google
-```
+    ```sh
+    git push --all google
+    ```
 
 4. Artifact Registry にイメージ リポジトリを作成します。
 
-```sh
-gcloud artifacts repositories create cicd-sample-repo \
-    --repository-format=Docker \
-    --location us-central1
-```
+    ```sh
+    gcloud artifacts repositories create cicd-sample-repo \
+        --repository-format=Docker \
+        --location us-central1
+    ```
 
 これで、Cloud Source Repositories にソースコードのリポジトリが作成され、Artifact Registry にアプリケーション コンテナのリポジトリが作成されました。Cloud Source Repositories リポジトリを使用すると、ソースコードのクローンを作成して CI / CD パイプラインに接続できます。
 
@@ -339,9 +339,9 @@ gcloud artifacts repositories create cicd-sample-repo \
 
 Cloud Build 用の Cloud Storage バケットを作成して `artifacts.json` ファイル(Skaffold によってビルドごとに生成されたアーティファクトを追跡)を保存します。
 
-```sh
-gsutil mb gs://$(gcloud config get-value project)-gceme-artifacts/
-```
+    ```sh
+    gsutil mb gs://$(gcloud config get-value project)-gceme-artifacts/
+    ```
 
 トレースを簡単に行えるため、各ビルドの `artifacts.json` ファイルを 1 か所に保存することをおすすめします。これにより、トラブルシューティングが容易になります。
 
@@ -556,9 +556,9 @@ kubectl proxy --port 8001 --context gke_$(gcloud config get-value project)_us-ce
 curl -s http://localhost:8001/api/v1/namespaces/default/services/cicd-sample:8080/proxy/ | grep -A 1 Counter
 ```
 
-    このコマンドは複数回実行でき、毎回カウンタ値が増分するのを確認できます。
+このコマンドは複数回実行でき、毎回カウンタ値が増分するのを確認できます。
 
-    アプリを表示すると、変更したテキストがステージング環境にデプロイしたバージョンのアプリケーションに含まれていることがわかります。
+アプリを表示すると、変更したテキストがステージング環境にデプロイしたバージョンのアプリケーションに含まれていることがわかります。
 
 - 2 つ目のタブを閉じます。
 
@@ -612,7 +612,7 @@ kubectl proxy --port 8002 --context gke_$(gcloud config get-value project)_us-ce
 curl -s http://localhost:8002/api/v1/namespaces/default/services/cicd-sample:8080/proxy/ | grep -A 1 Counter
 ```
 
-    このコマンドは複数回実行でき、毎回カウンタ値が増分するのを確認できます。
+このコマンドは複数回実行でき、毎回カウンタ値が増分するのを確認できます。
 
   - この 2 つ目のターミナルタブを閉じます。
 
