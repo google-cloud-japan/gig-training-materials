@@ -656,7 +656,7 @@ gcloud projects delete $PROJECT_ID
 cd $HOME && rm -rf ./cloudshell_open/gig-training-materials
 ```
 # Additional Contents
-以下に、Cloud Run に関する追加のコンテンツを 2 つ用意しています。ハンズオンの時間が余った方や、もっとサーバーレスの勉強をしたいという方はぜひ挑戦してみてください。
+以降に、Cloud Run に関する追加のコンテンツを 2 つ用意しています。ハンズオンの時間が余った方や、もっとサーバーレスの勉強をしたいという方はぜひ挑戦してみてください。
 
 ## 4. [セキュリティのシフトレフト](https://cloud.google.com/architecture/devops/devops-tech-shifting-left-on-security)
 
@@ -974,7 +974,7 @@ bindings:
   - serviceAccount:service-XXX@firebase-rules.iam.gserviceaccount.com
   role: roles/firebaserules.system
 - members:
-  - user:admin@shomizuno.altostrat.com
+  - user:XXX
   role: roles/owner
 - members:
   - serviceAccount:service-XXX@gcp-sa-pubsub.iam.gserviceaccount.com
