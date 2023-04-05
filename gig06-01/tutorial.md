@@ -143,12 +143,26 @@ gcloud services enable run.googleapis.com \
   compute.googleapis.com
 ```
 
-7. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります。
+7. GCP のプロジェクト番号を環境変数に設定します。
+
+```bash
+export PROJECT_NUM=$(gcloud projects describe $PROJECT_ID --format json | jq -r '.projectNumber')
+```
+
+8. Cloud Run が使用するサービスアカウントに、プロジェクトの編集者 IAM ロールを設定します。
+
+```bash
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --role roles/editor \
+  --member "serviceAccount:$PROJECT_NUM-compute@developer.gserviceaccount.com"
+```
+
+9. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります。
 ```bash
 gcloud app create --region $REGION
 ```
 
-8. Firestore データベースを作成します。
+10. Firestore データベースを作成します。
 ```bash
 gcloud firestore databases create --region $REGION
 ```
