@@ -1,30 +1,29 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
- name: cicd-sample
-description: application deployment pipeline
+  name: my-run-demo-app-1
+description: main application pipeline
 serialPipeline:
- stages:
- - targetId: dev-env
-   profiles: [dev]
- - targetId: prod-env
-   profiles: [prod]
+  stages:
+  - targetId: run-qsdev
+    profiles: [dev]
+  - targetId: run-qsprod
+    profiles: [prod]
 ---
 
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
- name: dev-env
+  name: run-qsdev
 description: Cloud Run development service
 run:
- location: projects/project-id-placeholder/locations/us-west1
+  location: projects/PROJECT_ID/locations/us-central1
 ---
 
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
- name: prod-env
-description: Cloud Run PROD service
-requireApproval: true
+  name: run-qsprod
+description: Cloud Run production service
 run:
- location: projects/project-id-placeholder/locations/us-south1
+  location: projects/PROJECT_ID/locations/us-central1

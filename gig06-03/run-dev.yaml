@@ -1,13 +1,9 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: app-dev
+  name: deploy-qs-dev
 spec:
   template:
     spec:
       containers:
-      - image: app
-        resources:
-          limits:
-            cpu: 1000m
-            memory: 128Mi
+      - image: my-app-image
