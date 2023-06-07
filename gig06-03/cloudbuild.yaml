@@ -1,0 +1,39 @@
+substitutions:
+  _REGION: us-central1
+steps:
+- name: 'gcr.io/k8s-skaffold/skaffold'
+  entrypoint: 'sh'
+  args:
+  - -xe
+  - -c
+  - |
+    # Build and push images
+    skaffold build --file-output=/workspace/artifacts.json \
+                   --default-repo=${_REGION}-docker.pkg.dev/$PROJECT_ID/cicd-sample-repo \
+                   --push=true
+
+    # Test images
+    skaffold test --build-artifacts=/workspace/artifacts.json
+
+- name: 'google/cloud-sdk:latest'
+  entrypoint: 'sh'
+  args:
+  - -xe
+  - -c
+  - |
+    gcloud config set deploy/region ${_REGION}
+    sed -i s/project-id-placeholder/$PROJECT_ID/g clouddeploy.yaml
+    gcloud deploy apply --file cloudeploy.yaml
+    gcloud deploy releases create rel-${SHORT_SHA} \
+                        --delivery-pipeline cicd-sample \
+                        --description "$(git log -1  --pretty='%s')" \
+                        --build-artifacts /workspace/artifacts.json \
+                        --annotations "commit_ui=https://source.cloud.google.com/$PROJECT_ID/cicd-sample/+/$COMMIT_SHA"
+artifacts:
+  objects:
+    location: 'gs://$PROJECT_ID-gceme-artifacts/'
+    paths:
+    - '/workspace/artifacts.json'
+options:
+  machineType: E2_HIGHCPU_8
+timeout: 3600s
