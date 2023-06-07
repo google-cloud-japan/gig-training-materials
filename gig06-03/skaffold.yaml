@@ -1,15 +1,15 @@
 apiVersion: skaffold/v3alpha1
 kind: Config
-metadata: 
-  name: cloud-run-app
+metadata:
+  name: deploy-run-quickstart
 profiles:
 - name: dev
   manifests:
     rawYaml:
-    - deploy-dev.yaml
+    - run-dev.yaml
 - name: prod
   manifests:
     rawYaml:
-    - deploy-prod.yaml
+    - run-prod.yaml
 deploy:
   cloudrun: {}
