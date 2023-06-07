@@ -18,7 +18,7 @@ steps:
   - -c
   - |
     sed -i s/PROJECT_ID/${PROJECT_ID}/g clouddeploy.yaml
-    gcloud deploy apply --file clouddeploy.yaml
+    gcloud deploy apply --file clouddeploy.yaml --project ${PROJECT_ID} --region ${_REGION}
 - name: 'google/cloud-sdk:latest'
   id: 'Create a release in Cloud Deploy'
   entrypoint: 'sh'
