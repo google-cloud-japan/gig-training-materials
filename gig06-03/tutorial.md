@@ -30,7 +30,7 @@
 
 ## [解説] **ハンズオンの内容と目的**
 
-このチュートリアルでは、Google Cloud ツールの統合セットを使用して、開発、継続的インテグレーション(CI)、継続的デリバリー(CD)システムを設定し、使用する方法について説明します。このシステムを使用すると、アプリケーションを開発し、[Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine?hl=ja)にデプロイできます。
+このチュートリアルでは、Google Cloud ツールの統合セットを使用して、開発、継続的インテグレーション(CI)、継続的デリバリー(CD)システムを設定し、使用する方法について説明します。このシステムを使用すると、アプリケーションを開発し、[Cloud Run](https://cloud.google.com/run?hl=ja)にデプロイできます。
 
 このチュートリアルは、ソフトウェア デベロッパーとオペレーターの両方を対象としており、完了すると両方の役割を果たせます。まず、CI / CD パイプラインを設定するオペレーターの役割を果たします。このパイプラインの主要なコンポーネントは、[Cloud Build](https://cloud.google.com/build?hl=ja)、[Artifact Registry](https://cloud.google.com/artifact-registry?hl=ja)、[Google Cloud Deploy](https://cloud.google.com/deploy?hl=ja) です。
 
