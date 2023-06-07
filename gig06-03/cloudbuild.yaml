@@ -23,7 +23,7 @@ steps:
   - |
     gcloud config set deploy/region ${_REGION}
     sed -i s/project-id-placeholder/$PROJECT_ID/g clouddeploy.yaml
-    gcloud deploy apply --file cloudeploy.yaml
+    gcloud deploy apply --file clouddeploy.yaml
     gcloud deploy releases create rel-${SHORT_SHA} \
                         --delivery-pipeline cicd-sample \
                         --description "$(git log -1  --pretty='%s')" \
