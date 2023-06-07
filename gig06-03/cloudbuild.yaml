@@ -28,8 +28,8 @@ steps:
   - -c
   - |
     gcloud deploy releases create rel-${SHORT_SHA} \
-                        --project ${PROJECT_ID}
-                        --region ${_REGION}
+                        --project ${PROJECT_ID} \
+                        --region ${_REGION} \
                         --delivery-pipeline my-run-demo-app-1 \
                         --images=my-app-image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/cicd-sample-repo/sample-image:${COMMIT_SHA}
 options:
