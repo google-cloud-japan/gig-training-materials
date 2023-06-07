@@ -1,7 +1,8 @@
 <!-- TODO: Add the instruction for setting up the environmental variables? -->
 
-# [GIG ハンズオン] **Cloud Code、Cloud Build、Google Cloud Deploy、GKE を使用したアプリの開発と配信**
+# [GIG ハンズオン] **Cloud Code、Cloud Build、Google Cloud Deploy、Cloud Run を使用したアプリの開発と配信**
 
+本ハンズオンは、以下のドキュメントを参考に、デプロイ先をCloud Runに変更しています。
 [オリジナル公式ドキュメント](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
 
 ## 目次 - Table of Contents
