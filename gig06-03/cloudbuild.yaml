@@ -3,6 +3,7 @@ substitutions:
 steps:
 - name: 'gcr.io/k8s-skaffold/skaffold'
   entrypoint: 'sh'
+  dir: 'gig06-03'
   args:
   - -xe
   - -c
@@ -17,6 +18,7 @@ steps:
 
 - name: 'google/cloud-sdk:latest'
   entrypoint: 'sh'
+  dir: 'gig06-03'
   args:
   - -xe
   - -c
