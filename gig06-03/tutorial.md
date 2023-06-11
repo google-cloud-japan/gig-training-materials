@@ -146,9 +146,9 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 
 2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
 
-3. Artifact Registry, Cloud Build, Google Cloud Deploy, Cloud Source Repositories, Google Kubernetes Engine, Resource Manager, and Service Networking API を有効にします。
+3. Artifact Registry, Cloud Build, Google Cloud Deploy, Cloud Source Repositories, Cloud Run, Resource Manager, and Service Networking API を有効にします。
 
-    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Ccontainer.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
+    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
 
 4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
 
@@ -161,7 +161,6 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 このセクションでは、アプリケーション オペレーターとして、次の処理を行います。
 
 - 必要な権限を設定する。
-- ステージング環境と本番環境用の GKE クラスタを作成する。
 - ソース リポジトリのクローンを作成する
 - ソースコード用のリポジトリを Cloud Source Repositories に作成する。
 - コンテナ アプリケーション用のリポジトリを Artifact Registry に作成します。
@@ -205,16 +204,16 @@ gcloud config set project $PROJECT_ID
 
     この IAM ロールの詳細については、[clouddeploy.operator](https://cloud.google.com/deploy/docs/iam-roles-permissions?hl=ja#predefined_roles) ロールをご覧ください。
 
-  - Cloud Build と Google Cloud Deploy のサービス アカウント権限を付与して GKE にデプロイします。
+  - Cloud Build と Google Cloud Deploy のサービス アカウント権限を付与して Cloud Run にデプロイします。
 
     ```sh
     gcloud projects add-iam-policy-binding $PROJECT_ID \
         --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
         --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
-        --role="roles/container.admin"
+        --role="roles/run.admin"
     ```
 
-    この IAM ロールの詳細については、[container.admin](https://cloud.google.com/iam/docs/understanding-roles?hl=ja#kubernetes-engine-roles) ロールをご覧ください。
+    この IAM ロールの詳細については、[run.admin](https://cloud.google.com/iam/docs/understanding-roles?hl=ja#cloud-run-roles) ロールをご覧ください。
 
   - Cloud Build サービス アカウントに、Google Cloud Deploy オペレーションの呼び出しに必要な権限を付与します。
 
@@ -229,69 +228,26 @@ gcloud config set project $PROJECT_ID
 
     この IAM ロールの詳細については、[iam.serviceAccountUser](https://cloud.google.com/compute/docs/access/iam?hl=ja#the_serviceaccountuser_role) ロールをご覧ください。
 
+  - デフォルトの Compute Engine サービス アカウントに actAs Cloud Run へのワークロードをデプロイする権限を付与します。
+
+    ```sh
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+        --member=serviceAccount:$(gcloud projects describe $PROJECT_ID \
+        --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+        --role="roles/iam.serviceAccountUser"
+    ```
+
 これで、CI / CD パイプラインに必要な権限が付与されました。
 
-### **GKE クラスタを作成する**
-このセクションでは、ステージング環境と本番環境(どちらも GKE クラスタ)を作成します(minikube を使用するため、ここで開発クラスタの設定を行う必要はありません)。
+### **IDE を開いてソースコードのあるディレクトリに移動する**
 
-1. ステージング環境と本番環境用の GKE クラスタを作成します。
+今回は既にクローンしたリポジトリにソースコードが含まれていますので、該当のディレクトリに移動します。
 
-    ```sh
-    gcloud container clusters create-auto staging \
-        --region us-central1 \
-        --project=$(gcloud config get-value project) \
-        --async
-    ```
-    ```sh
-    gcloud container clusters create-auto prod \
-        --region us-central1 \
-        --project=$(gcloud config get-value project) \
-        --async
-    ```
-
-  ステージング クラスタでは、コードの変更をテストします。ステージング環境のデプロイがアプリケーションに悪影響を及ぼさないことを確認したら、本番環境にデプロイします。
-
-2. 次のコマンドを実行して、ステージング環境のクラスタと本番環境クラスタの両方の出力が STATUS: RUNNING であることを確認します。
+1. ディレクトリを移動する
 
     ```sh
-    gcloud container clusters list
+    cd ~/gig-training-materials/gig06-03/
     ```
-
-3. ステージング環境のクラスタと本番環境クラスタの kubeconfig ファイルの認証情報を取得します。
-
-    これらの認証情報を使用して GKE クラスタと情報を交換します。たとえば、アプリケーションが正しく実行されているかどうかを確認します。
-
-    ```sh
-    gcloud container clusters get-credentials staging --region us-central1
-    ```
-    ```sh
-    gcloud container clusters get-credentials prod --region us-central1
-    ```
-
-ステージング環境と本番環境の GKE クラスタが作成されました。
-
-### **IDE を開いてリポジトリのクローンを作成する**
-
-リポジトリのクローンを作成して、開発環境でアプリケーションを表示するには、次の操作を行います。
-
-1. [リポジトリのクローンを作成し、Cloud Shell で開きます](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fgoogle%2Fgolden-path-for-app-delivery&cloudshell_git_branch=main&cloudshell_open_in_editor=README.md&hl=ja)。
-
-2. [Confirm] をクリックします。
-
-    Cloud Shell エディタが開き、サンプル リポジトリのクローンが作成されます。
-
-    Cloud Shell エディタでアプリケーションのコードを表示できるようになりました。
-
-3. このチュートリアルで使用するプロジェクトを指定します。
-
-    ```sh
-    export PROJECT_ID={{project-id}}
-    gcloud config set project $PROJECT_ID
-    ```
-
-    ダイアログが表示された場合は、[承認] をクリックします。
-
-これで、開発環境にアプリケーションのソースコードが作成されました。
 
 このソース リポジトリには、CI / CD パイプラインに必要な Cloud Build ファイルと Google Cloud Deploy ファイルが含まれています。
 
@@ -308,7 +264,6 @@ gcloud config set project $PROJECT_ID
 2. Google Cloud Deploy 構成のターゲットが適切なプロジェクトであることを確認します。
 
     ```sh
-    sed -i s/project-id-placeholder/$(gcloud config get-value project)/g deploy/*
     git config --global credential.https://source.developers.google.com.helper gcloud.sh
     git remote add google https://source.developers.google.com/p/$(gcloud config get-value project)/r/cicd-sample
     ```
@@ -333,38 +288,19 @@ gcloud config set project $PROJECT_ID
 
 このセクションでは、アプリケーション オペレータとして機能し、CI/CD パイプラインを構成します。パイプラインは、CI の場合は Cloud Build、CD の場合は Google Cloud Deploy を使用します。パイプラインのステップは、Cloud Build トリガーで定義されます。
 
-### 1. Cloud Build 用 Cloud Storage バケット作成
-
-Cloud Build 用の Cloud Storage バケットを作成して `artifacts.json` ファイル(Skaffold によってビルドごとに生成されたアーティファクトを追跡)を保存します。
-
-    ```sh
-    gsutil mb gs://$(gcloud config get-value project)-gceme-artifacts/
-    ```
-
-トレースを簡単に行えるため、各ビルドの `artifacts.json` ファイルを 1 か所に保存することをおすすめします。これにより、トラブルシューティングが容易になります。
-
-### 2. `cloudbuild.yaml` ファイル確認
+### 1. `cloudbuild.yaml` ファイル確認
 
 `cloudbuild.yaml` ファイルを確認します。これは Cloud Build トリガーを定義し、クローン作成したソース リポジトリですでに構成されています。
 
 このファイルで、ソースコード リポジトリのメインブランチに対して新しい push が行われるたびに呼び出されるトリガーが定義されます。
 
-  CI / CD パイプラインの手順は、このファイルで定義されています。
+CI / CD パイプラインの手順は、このファイルで定義されています。
 
-- Cloud Build は、Skaffold を使用してアプリケーション コンテナをビルドします。
+- Cloud Build は、コンテナイメージをビルドし、Artifact Registry に配置します。
 
-- Cloud Build がビルドの `artifacts.json` ファイルを Cloud Storage バケットに配置します。
+- `gcloud deploy apply` コマンドは、 clouddeploy.yaml に定義された配信パイプライン、ターゲットを Google Cloud Deploy サービスに登録します。
 
-- Cloud Build がアプリケーション コンテナを Artifact Registry に配置します。
-
-- Cloud Build がアプリケーション コンテナでテストを実行します。
-
-- `gcloud beta deploy apply` コマンドは、次のファイルを Google Cloud Deploy サービスに登録します。
-
-  - 配信パイプラインである `deploy/pipeline.yaml`
-  - ターゲット ファイルである `deploy/staging.yaml` と `deploy/prod.yaml`
-
-      ファイルが登録されると、Google Cloud Deploy はパイプラインとターゲットが存在しない場合は作成し、構成が変更された場合には再作成します。ターゲットは、ステージング環境と本番環境です。
+ファイルが登録されると、Google Cloud Deploy はパイプラインとターゲットが存在しない場合は作成し、構成が変更された場合には再作成します。ターゲットは、ステージング環境と本番環境です。
 
 - Google Cloud Deploy では、デリバリー パイプライン用の新しいリリースが作成されます。
 
@@ -374,20 +310,20 @@ Cloud Build 用の Cloud Storage バケットを作成して `artifacts.json` �
 
 デリバリー パイプラインとターゲットは Google Cloud Deploy によって管理され、ソースコードから切り離されます。この分離により、アプリケーションのソースコードが変更されたときに配信パイプラインとターゲット ファイルを更新する必要がなくなります。
 
-### 3. Cloud Build トリガーを作成する
+### 2. Cloud Build トリガーを作成する
 
 ```sh
-gcloud beta builds triggers create cloud-source-repositories \
+gcloud builds triggers create cloud-source-repositories \
     --name="cicd-sample-main" \
     --repo="cicd-sample" \
     --branch-pattern="main" \
-    --build-config="cloudbuild.yaml"
+    --build-config="gig06-03/cloudbuild.yaml"
 ```
 
 このトリガーは、Cloud Build にソース リポジトリを監視するように指示し、`cloudbuild.yaml` ファイルを使用してリポジトリに対する変更に対応します。このトリガーは、メインブランチに新しい push があるたびに呼び出されます。
 
 ### 4. ビルドがないことを確認
-[Cloud Build](https://console.cloud.google.com/cloud-build/dashboard?hl=ja&_ga=2.241990337.2113702237.1667787342-853816604.1666918848) に移動して、アプリケーションのビルドがないことを確認します。
+[Cloud Build](https://console.cloud.google.com/cloud-build/dashboard?hl=ja) に移動して、アプリケーションのビルドがないことを確認します。
 
 これで CI パイプラインと CD パイプラインが設定され、リポジトリのメインブランチでトリガーが作成されました。
 
@@ -398,57 +334,45 @@ gcloud beta builds triggers create cloud-source-repositories \
 アプリケーションを開発する際には、開発ワークスペースとして Cloud Code を使用し、アプリケーションの変更と検証を繰り返します。
 
 - アプリケーションに変更を加えます。
-- 新しいコードをビルドしてテストします。
-- アプリケーションを minikube クラスタにデプロイし、ユーザー向けの変更を検証します。
+- 新しいコードをビルドします。
+- アプリケーションを Cloud Run Emulator にデプロイし、ユーザー向けの変更を検証します。
 - メイン リポジトリに変更を送信します。
 
 この変更がメイン リポジトリに commit されると、Cloud Build トリガーが CI / CD パイプラインを開始します。
 
-### アプリケーションをビルドし、テストして、実行する
+### アプリケーションをビルドし、実行する
 
 このセクションでは、アプリケーションをビルド、テスト、デプロイしてアクセスします。
 
 前のセクションで使用したのと同じ Cloud Shell エディタ インスタンスを使用します。エディタを閉じた場合は、ブラウザで [ide.cloud.google.com](https://ide.cloud.google.com/?hl=ja) に移動して Cloud Shell エディタを開きます。
 
-#### 1. ターミナルで、minikube を起動します。
+#### 1. Cloud Shell エディタの下部にあるペインで、**[Cloud Code]** を選択します。
 
-```sh
-minikube start
-```
+#### 2. ターミナルとエディタの間に表示されるシンパネルで、**[Cloud Run Emulator で実行]** を選択します。
 
-minikube で Cloud Shell にローカル Kubernetes クラスタを設定します。この設定が完了するまでに数分かかります。完了すると、minikube プロセスは Cloud Shell インスタンスのバックグラウンドで実行されます。
-
-#### 2. Cloud Shell エディタの下部にあるペインで、**[Cloud Code]** を選択します。
-
-#### 3. ターミナルとエディタの間に表示されるシンパネルで、**[Kubernetes で実行]** を選択します。
-
-「`Use current context (minikube) to run the app?`」というプロンプトが表示されたら、[**はい**] をクリックします。
-
-このコマンドにより、ソースコードがビルドされ、テストが実行されます。この処理には数分かかることがあります。テストには、単体テストと、デプロイ環境に設定されたルールを確認する事前構成された検証ステップが含まれます。これにより、開発環境で実行している場合でもデプロイの問題を警告できます。
+このコマンドにより、ソースコードがビルドされます。この処理には数分かかることがあります。
 
 [**出力**] タブには、Skaffold がアプリケーションをビルドしてデプロイする際の進行状況が表示されます。
 
 このセクションを通してこのタブは開いたままにします。
 
-ビルドとテストが終了すると、[**出力**] タブに `Update succeeded` と表示され、2 つの URL が表示されます。
+ビルドとテストが終了すると、[**出力**] タブに `Deployed completed` と表示され、URL が表示されます。
 
-アプリをビルドしてテストすると、Cloud Code の [**出力**] タブにログと URL がストリーミングされます。開発環境で変更を行い、テストを実行すると、開発環境のアプリのバージョンが表示され、正常に動作していることを確認できます。
+アプリをビルドすると、Cloud Code の [**出力**] タブにログと URL がストリーミングされます。開発環境で変更を行い、テストを実行すると、開発環境のアプリのバージョンが表示され、正常に動作していることを確認できます。
 
 出力には `Watching for changes...` も表示されます。これは、ウォッチモードが有効になっていることを意味します。Cloud Code がウォッチモードになっている間、このサービスはリポジトリに保存されている変更を検出し、最新の変更を使用してアプリを自動的に再ビルドして再デプロイします。
 
-#### 4. Cloud Code ターミナルに出力された最初の URL(`http://localhost:8080`)にポインタを合わせます。
+#### 3. Cloud Code ターミナルに出力された最初の URL(`http://localhost:8080`)にポインタを合わせます。
 
 表示されたツールチップで、[**Open Web Preview**] を選択します。
 
-Cloud Code は、バックグラウンドの minikube で実行されている `cicd-sample` サービスにトラフィックを自動的にポート転送をします。
+Cloud Code は、バックグラウンドの Cloud Run Emulator で実行されている `cicd-sample` サービスにトラフィックを自動的にポート転送をします。
 
 ブラウザでページを更新します。
 
-[**カウンタ**] の横にある数字が増加し、アプリが更新に応答していることを示します。
-
 ローカル環境で変更を加える際にアプリケーションを表示できるように、ブラウザでこのページを開いたままにします。
 
-これで、開発環境でのアプリケーションのビルドとテストが完了しました。アプリケーションを minikube で実行している開発クラスタにデプロイし、アプリケーションのユーザー向けの動作を確認しました。
+これで、開発環境でのアプリケーションのビルドとテストが完了しました。アプリケーションを minikube 上の Cloud Run Emulator で実行している開発クラスタにデプロイし、アプリケーションのユーザー向けの動作を確認しました。
 
 ### 変更する
 
@@ -456,21 +380,19 @@ Cloud Code は、バックグラウンドの minikube で実行されている `
 
 #### 1. Cloud Shell エディタで、`index.html` ファイルを開きます。
 
-#### 2. 文字列 `Sample App Info` を検索し、タイトルで小文字が使用されるように `sample app info` に変更します。
+#### 2. 文字列 `Hello World!` を検索し、タイトルで小文字が使用されるように `Hello GIG!` に変更します。
 
 ファイルは自動的に保存され、アプリケーション コンテナの再構築がトリガーされます。
 
 Cloud Code が変更を検出し、自動的に再デプロイします。[**出力**] タブに `Update initiated` が表示されます。この再デプロイが完了するまでに数分かかります。
 
-この自動再デプロイ機能は、Kubernetes クラスタで実行されている任意のアプリケーションで使用できます。
-
 ビルドが完了したら、アプリを開いているブラウザに移動して、ページを更新します。
 
-更新すると、テキストで小文字が使用されるようになります。
+更新すると、テキストが変更されています。
 
-この設定により、どのようなアーキテクチャのどのコンポーネントでも、自動的に再読み込みが行われます。Cloud Code と minikube を使用すると、Kubernetes で実行されているものすべてに、このホットコード リロード機能が備わっています。
+この設定により、どのようなアーキテクチャのどのコンポーネントでも、自動的に再読み込みが行われます。
 
-Cloud Code では、Kubernetes クラスタにデプロイされたアプリケーションをデバッグできます。これらの手順はこのチュートリアルでは扱いませんが、[Kubernetes アプリケーションのデバッグ](https://cloud.google.com/code/docs/shell/debug?hl=ja)をご覧ください。
+Cloud Code では、Cloud Run Emulator にデプロイされたアプリケーションをデバッグできます。これらの手順はこのチュートリアルでは扱いませんが、[Cloud Code for Cloud Shell で Cloud Run サービスをデバッグする](https://cloud.google.com/code/docs/shell/debug-service?hl=ja)をご覧ください。
 
 ### コードを commit する
 
@@ -492,7 +414,7 @@ git config --global user.name "NAME"
 
 ```sh
 git add .
-git commit -m "use lowercase for: sample app info"
+git commit -m "change"
 ```
 
 ここでは、`git push` コマンドを実行する必要はありません。これは後で行われます。
@@ -522,49 +444,39 @@ git push google
 
 このビルドには、`cicd-sample` に加えた変更が含まれています。
 
-#### 2. [Cloud Build ダッシュボード](https://console.cloud.google.com/cloud-build/dashboard?hl=ja&_ga=2.237074371.2113702237.1667787342-853816604.1666918848)に戻り、ビルドが作成されたことを確認します。
+#### 2. [Cloud Build ダッシュボード](https://console.cloud.google.com/cloud-build/dashboard?hl=ja)に戻り、ビルドが作成されたことを確認します。
 
-#### 4. 右側のビルドログで [**Running: cicd-sample - cicd-sample-main**] をクリックし、各ステップの開始と終了を示す青いテキストを探します。
+#### 3. 右側のビルドログで [**Running: cicd-sample - cicd-sample-main**] をクリックし、各ステップの開始と終了を示す青いテキストを探します。
 
-**ステップ 0** は、`cloudbuild.yaml` ファイルからの `skaffold build` 手順と `skaffold test` 手順の出力を示します。**ステップ 0**（パイプラインの CI 部分）のビルドタスクとテストタスクに合格したため、**ステップ 1**（パイプラインの CD 部分）のデプロイタスクが実行されるようになりました。
+**ステップ 0** は、`cloudbuild.yaml` ファイルからの コンテナをビルドする手順の出力を示します。**ステップ 0**（パイプラインの CI 部分）のビルドタスクに合格したため、**ステップ 1**（パイプラインの CD 部分）のデプロイタスクが実行されるようになりました。
 
 このステップは正常に完了し、次のメッセージが表示されます。
 
 `Created Google Cloud Deploy rollout ROLLOUT_NAME in target staging`
 
-#### 4. [Google Cloud Deploy 配信パイプライン ページ](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja&_ga=2.132930509.2113702237.1667787342-853816604.1666918848)を開き、`cicd-sample delivery` パイプラインをクリックします。
+#### 4. [Google Cloud Deploy 配信パイプライン ページ](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja)を開き、`cicd-sample delivery` パイプラインをクリックします。
 
 アプリケーションはステージング環境にデプロイされますが、本番環境にはデプロイされません。
 
-#### 5. アプリケーションがステージング環境で正常に動作していることを確認します。
+#### 5. Cloud Run のステージング環境をアクセス可能にします。
+
+Cloud Run サービスを公開するため、以下のコマンドを実行します。
 
 ```sh
-kubectl proxy --port 8001 --context gke_$(gcloud config get-value project)_us-central1_staging
+gcloud run services set-iam-policy deploy-qs-dev policy.yaml --region=us-central1
 ```
 
-このコマンドにより、アプリケーションにアクセスするための kubectl プロキシが設定されます。
+#### 6. アプリケーションがステージング環境で正常に動作していることを確認します。
 
-#### 6. Cloud Shell からアプリケーションにアクセスします。
-
-- Cloud Shell エディタで、新しいターミナルタブを開きます。
-
-- リクエストを localhost に送信して、カウンタをインクリメントします。
-
-```sh
-curl -s http://localhost:8001/api/v1/namespaces/default/services/cicd-sample:8080/proxy/ | grep -A 1 Counter
-```
-
-このコマンドは複数回実行でき、毎回カウンタ値が増分するのを確認できます。
+[Cloud Run のコンソール画面](https://console.cloud.google.com/run?hl=ja) を開き、ステージング環境のアプリが正しく動作していることを確認します。
 
 アプリを表示すると、変更したテキストがステージング環境にデプロイしたバージョンのアプリケーションに含まれていることがわかります。
 
 - 2 つ目のタブを閉じます。
 
-- 最初のタブで `Control+C` を押して、プロキシを停止します。
+Cloud Build トリガーを呼び出して CI プロセスを開始しました。これには、アプリケーションのビルド、ステージング環境へのデプロイが含まれます。
 
-Cloud Build トリガーを呼び出して CI プロセスを開始しました。これには、アプリケーションのビルド、ステージング環境へのデプロイ、ステージング環境でのアプリケーションの動作検証のテスト実行が含まれます。
-
-コードのビルドとテストがステージング環境で合格すると、CI プロセスは成功します。その後、CI プロセスが成功すると、Google Cloud Deploy で CD システムが開始されます。
+コードのビルドがステージング環境で合格すると、CI プロセスは成功します。その後、CI プロセスが成功すると、Google Cloud Deploy で CD システムが開始されます。
 
 ### リリースを本番環境に昇格させる
 
@@ -574,7 +486,7 @@ Cloud Build トリガーを呼び出して CI プロセスを開始しました�
 
 リリースを本番環境に昇格させる方法は次のとおりです。
 
-#### 1. [Google Cloud Deploy デリバリー パイプラインの概要](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja&_ga=2.136944627.2113702237.1667787342-853816604.1666918848)を開き、cicd-sample パイプラインを選択します。
+#### 1. [Google Cloud Deploy デリバリー パイプラインの概要](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja)を開き、cicd-sample パイプラインを選択します。
 
 #### 2. ステージング環境から本番環境にデプロイを昇格します。手順は次のとおりです。
 
@@ -592,29 +504,17 @@ Cloud Build トリガーを呼び出して CI プロセスを開始しました�
 
    - 次のウィンドウで [**承認**] をクリックします。
 
-- [Google Cloud Deploy デリバリー パイプラインの概要](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja&_ga=2.182088292.2113702237.1667787342-853816604.1666918848)に戻り、cicd-sample パイプラインを選択します。
+- [Google Cloud Deploy デリバリー パイプラインの概要](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja)に戻り、cicd-sample パイプラインを選択します。
 
-#### 4. パイプラインの可視化で prod ボックスが緑色で表示されたら（ロールアウトが成功したことを意味する）、アプリケーションへのアクセスに使用する kubectl プロキシを設定して、アプリケーションが本番環境で動作することを確認します。
+#### 4. パイプラインの可視化で prod ボックスが緑色で表示されたら（ロールアウトが成功したことを意味する）、アプリケーションが本番環境で動作することを確認します。
 
-```sh
-kubectl proxy --port 8002 --context gke_$(gcloud config get-value project)_us-central1_prod
-```
-
-#### 5. Cloud Shell からアプリケーションにアクセスします。
-
-  - Cloud Shell エディタで、新しいターミナルタブを開きます。
-
-  - カウンタをインクリメントします。
+Cloud Run サービスを公開するため、以下のコマンドを実行します。
 
 ```sh
-curl -s http://localhost:8002/api/v1/namespaces/default/services/cicd-sample:8080/proxy/ | grep -A 1 Counter
+gcloud run services set-iam-policy deploy-qs-prod policy.yaml --region=us-central1
 ```
 
-このコマンドは複数回実行でき、毎回カウンタ値が増分するのを確認できます。
-
-  - この 2 つ目のターミナルタブを閉じます。
-
-  - 最初のタブで `Control+C` を押して、プロキシを停止します。
+[Cloud Run のコンソール画面](https://console.cloud.google.com/run?hl=ja) を開き、本番環境のアプリが正しく動作していることを確認します。
 
 これで昇格して、本番環境へのデプロイが承認されました。最近変更したアプリケーションは、本番環境で動作するようになりました。
 
@@ -650,16 +550,16 @@ gcloud deploy delivery-pipelines delete cicd-sample --region=us-central1 --force
 #### 2. Cloud Build トリガーを削除します。
 
 ```sh
-gcloud beta builds triggers delete cicd-sample-main
+gcloud builds triggers delete cicd-sample-main
 ```
 
-#### 3. ステージング クラスタと本番環境クラスタを削除します。
+#### 3. ステージング 環境と本番環境を削除します。
 
 ```sh
-gcloud container clusters delete staging --region us-central1
+gcloud run services delete deploy-qs-dev --region=us-central1
 ```
 ```sh
-gcloud container clusters delete prod --region us-central1
+gcloud run services delete deploy-qs-prod --region=us-central1
 ```
 
 #### 4. Cloud Source Repositories でリポジトリを削除します。
@@ -668,31 +568,15 @@ gcloud container clusters delete prod --region us-central1
 gcloud source repos delete cicd-sample
 ```
 
-#### 5. Cloud Storage バケットを削除します。
-
-```sh
-gsutil rm -r gs://$(gcloud config get-value project)-gceme-artifacts/
-```
-```sh
-gsutil rm -r gs://$(gcloud config get-value project)_clouddeploy/
-```
-
-#### 6. Artifact Registry のリポジトリを削除します。
+#### 5. Artifact Registry のリポジトリを削除します。
 
 ```sh
 gcloud artifacts repositories delete cicd-sample-repo \
     --location us-central1
 ```
 
-## 次のステップ
+## Congratulations
 
-- プライベート GKE インスタンスにデプロイする方法については、[Virtual Private Cloud ネットワークの限定公開クラスタへのデプロイ](https://cloud.google.com/deploy/docs/execution-environment?hl=ja#deploying_to_a_private_cluster_on_a_network)をご覧ください。
+<walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
 
-- デプロイの自動化に関するベスト プラクティスについては、以下をご覧ください。
-  - [DevOps 技術: デプロイ自動化](https://cloud.google.com/architecture/devops/devops-tech-deployment-automation?hl=ja)。デプロイの自動化を実装、改善、測定する方法。
-  - Architecture Framework からの[デプロイの自動化](https://cloud.google.com/architecture/framework/operational-excellence/automate-your-deployments?hl=ja)。
-- デプロイ戦略の詳細については、以下をご覧ください。
-  - アーキテクチャ フレームワークから[デプロイを段階的に実行する](https://cloud.google.com/architecture/framework/operational-excellence/automate-your-deployments?hl=ja#launch_deployments_gradually)。
-  - [アプリケーションのデプロイとテストの戦略](https://cloud.google.com/architecture/application-deployment-and-testing-strategies?hl=ja)
-  - [GKE でのデプロイとテストの戦略の実装](https://cloud.google.com/architecture/implementing-deployment-and-testing-strategies-on-gke?hl=ja)のチュートリアル。
-- [Cloud アーキテクチャ センター](https://cloud.google.com/architecture?hl=ja)で、その他のリファレンス アーキテクチャ、図、チュートリアル、ベスト プラクティスを確認する。
+お疲れ様でした！
