@@ -2,8 +2,8 @@
 
 # [GIG ハンズオン] **Cloud Code、Cloud Build、Google Cloud Deploy、Cloud Run を使用したアプリの開発と配信**
 
-本ハンズオンは、以下のドキュメントを参考に、デプロイ先をCloud Runに変更しています。
-[オリジナル公式ドキュメント](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja)
+本ハンズオンは、以下のドキュメントを元に作成されています。
+[オリジナル公式ドキュメント](https://cloud.google.com/deploy/docs/deploy-app-run?hl=ja)
 
 ## 目次 - Table of Contents
 - [解説] ハンズオンの内容と目的
@@ -38,7 +38,7 @@
 
 最後に、オペレータとして機能して、アプリケーションを本番環境にデプロイする手順を実行します。
 
-このチュートリアルは、Google Cloud での gcloud コマンドの実行と GKE へのアプリケーション コンテナのデプロイに精通していることを前提としています。
+このチュートリアルは、Google Cloud での gcloud コマンドの実行と Cloud Run へのアプリケーション コンテナのデプロイに精通していることを前提としています。
 
 この統合システムの主な特徴は次のとおりです。
 
@@ -72,19 +72,18 @@
 
 1. 開発ワークスペースとしての **Cloud Code**
 
-    このワークスペースの一部として、[minikube](https://minikube.sigs.k8s.io/docs/) で実行される開発クラスタで変更を確認できます。[Cloud Shell](https://cloud.google.com/shell?hl=ja) で Cloud Code と minikube クラスタを実行します。Cloud Shell は、ブラウザからアクセスできるオンライン開発環境です。コンピューティング リソース、メモリ、統合開発環境(IDE)を備え、Cloud Code もインストールされます。
+    [Cloud Shell](https://cloud.google.com/shell?hl=ja) で Cloud Code を活用し、変更を確認できます。Cloud Shell は、ブラウザからアクセスできるオンライン開発環境です。コンピューティング リソース、メモリ、統合開発環境(IDE)を備え、Cloud Code もインストールされます。
 
 2. アプリケーションのビルドとテストを行うための **Cloud Build**(パイプラインの「CI」部分)
 
     パイプラインのこの部分には、次のアクションが含まれます。
 
-    - Cloud Build は、Cloud Build トリガーを使用して、ソース リポジトリに対する変更をモニタリングします。'
+    - Cloud Build は、Cloud Build トリガーを使用して、ソース リポジトリに対する変更をモニタリングします。
     - メインブランチに変更が commit されると、Cloud Build トリガーは次の処理を行います。
       - アプリケーション コンテナを再構築します。
-      - ビルド アーティファクトを Cloud Storage バケットに配置します。
       - アプリケーション コンテナを Artifact Registry に配置します。
       - コンテナでテストを実行します。
-      - Google Cloud Deploy を呼び出して、コンテナをステージング環境にデプロイします。このチュートリアルでは、ステージング環境は Google Kubernetes Engine クラスタです。
+      - Google Cloud Deploy を呼び出して、コンテナをステージング環境にデプロイします。このチュートリアルでは、ステージング環境は Cloud Run サービスです。
     - ビルドとテストが成功したら、Google Cloud Deploy を使用して、ステージング環境から本番環境にコンテナを昇格できます。
 
 3. デプロイを管理するための **Google Cloud Deploy**(パイプラインの「CD」部分)
@@ -94,9 +93,9 @@
     - [配信パイプライン](https://cloud.google.com/deploy/docs/terminology?hl=ja#delivery_pipeline)と[ターゲット](https://cloud.google.com/deploy/docs/terminology?hl=ja#target)を登録します。ターゲットはステージング クラスタと本番環境クラスタを表します。
     - Cloud Storage バケットを作成し、Skaffold レンダリング ソースとレンダリングされたマニフェストを作成したバケットに保存します。
     - ソースコードを変更するたびに(新しいリリース)(https://cloud.google.com/deploy/docs/terminology?hl=ja#release)を行います。このチュートリアルには 1 つの変更点があるため、新しいリリースを 1 つ行います。
-    - アプリケーションを本番環境にデプロイします。この本番環境へのデプロイでは、運用担当者(または指定した人)がデプロイを手動で承認します。このチュートリアルでは、本番環境は Google Kubernetes Engine クラスタです。
+    - アプリケーションを本番環境にデプロイします。この本番環境へのデプロイでは、運用担当者(または指定した人)がデプロイを手動で承認します。このチュートリアルでは、本番環境は Cloud Run サービスです。
 
-Kubernetes ネイティブ アプリケーションの継続的な開発を容易にするコマンドライン ツールである [Skaffold](https://skaffold.dev/) は、これらのコンポーネントの基盤であり、開発、ステージング、本番環境の間で構成を共有できます。
+Container & Kubernetes ネイティブ アプリケーションの継続的な開発を容易にするコマンドライン ツールである [Skaffold](https://skaffold.dev/) は、これらのコンポーネントの基盤であり、開発、ステージング、本番環境の間で構成を共有できます。
 
 Google Cloud はアプリケーションのソースコードを GitHub に保存します。このチュートリアルの一環として、このリポジトリのクローンを Cloud Source Repositories に作成して、CI / CD パイプラインに接続します。
 
@@ -108,7 +107,6 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 
 - CI パイプラインと CD パイプラインを設定します。この設定には次のものが含まれます。
   - 必要な権限を設定する。
-  - ステージング環境と本番環境用の GKE クラスタを作成する。
   - ソースコード用のリポジトリを Cloud Source Repositories に作成する。
   - アプリケーション コンテナ用のリポジトリを Artifact Registry に作成する。
   - メインの GitHub リポジトリに Cloud Build トリガーを作成する。
@@ -120,7 +118,7 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 - 事前構成された開発環境と連携するように、リポジトリのクローンを作成する。
 - デベロッパー ワークスペース内でアプリケーションを変更する
 - 変更をビルドおよびテストします。テストには、ガバナンスの検証テストが含まれます。
-- 開発クラスタで変更を表示して検証します。このクラスタは minikube で実行されます。
+- 開発環境 (Cloud Shell のローカル環境) で変更を表示して検証します。
 - メイン リポジトリに変更を commit する。
 
 ## **費用**
@@ -130,12 +128,12 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 [Cloud Build](https://cloud.google.com/build/pricing?hl=ja)
 [Google Cloud Deploy](https://cloud.google.com/deploy/pricing?hl=ja)
 [Artifact Registry](https://cloud.google.com/artifact-registry/pricing?hl=ja)
-[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/pricing?hl=ja)
+[Cloud Run](https://cloud.google.com/run/pricing?hl=ja)
 [Cloud Source Repositories](https://cloud.google.com/source-repositories/pricing?hl=ja)
 [Cloud Storage](https://cloud.google.com/storage/pricing?hl=ja)
 [料金計算ツール](https://cloud.google.com/products/calculator?hl=ja)を使うと、予想使用量に基づいて費用の見積もりを生成できます。
 
-このチュートリアルを終了した後、作成したリソースを削除すると、それ以上の請求は発生しません。詳細については、[クリーンアップ](https://cloud.google.com/architecture/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke?hl=ja#clean-up)をご覧ください。
+このチュートリアルを終了した後、作成したリソースを削除すると、それ以上の請求は発生しません。詳細については、[クリーンアップ](https://cloud.google.com/deploy/docs/deploy-app-run?hl=ja#clean-up)をご覧ください。
 
 ## Google Cloud プロジェクトの選択
 
