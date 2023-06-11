@@ -1,7 +1,7 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
-  name: my-run-demo-app-1
+  name: cicd-sample
 description: main application pipeline
 serialPipeline:
   stages:
