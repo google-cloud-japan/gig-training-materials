@@ -518,6 +518,80 @@ gcloud run services set-iam-policy deploy-qs-prod policy.yaml --region=us-centra
 
 これで昇格して、本番環境へのデプロイが承認されました。最近変更したアプリケーションは、本番環境で動作するようになりました。
 
+## [Option] カナリアデプロイ戦略、複数ターゲットへのデプロイの設定
+
+Cloud Deploy では、カナリアデプロイ戦略と複数のターゲットへのデプロイがサポートされています（2023/05 時点でプレビュー）。
+
+なお、ここでは `clouddeploy.yaml` の設定内容のみを記載しています。詳細な手順は、以下を参照してください。
+
+- [アプリケーションをターゲットにカナリア デプロイする](https://cloud.google.com/deploy/docs/deploy-app-canary?hl=ja)
+- [アプリを複数のターゲットに同時にデプロイする](https://cloud.google.com/deploy/docs/deploy-app-parallel?hl=ja)
+
+### カナリアデプロイ戦略
+
+`clouddeploy.yaml` を修正し、カナリアデプロイ戦略を設定します（ `clouddeploy.yaml` にはコメントアウトされた状態で設定が含められています。修正する際はインデントに注意してください）。
+
+なお、ここでは 10%, 25%, 50%, 100% (stable) の 4 つのフェーズが定義されています（100% は記述する必要はありません）。
+
+```yaml
+# ...(略)...
+serialPipeline:
+  stages:
+  - targetId: run-qsdev
+    profiles: [dev]
+  - targetId: run-qsprod
+    profiles: [prod]
+    ## canary deployment
+    strategy:
+      canary:
+        runtimeConfig:
+          cloudRun:
+            automaticTrafficControl: true
+        canaryDeployment:
+          percentages: [10, 25, 50]
+          verify: false
+```
+
+### 複数ターゲットへのデプロイ
+
+`clouddeploy.yaml` を修正し、複数のターゲットへのデプロイを設定します（ `clouddeploy.yaml` にはコメントアウトされた状態で設定が含められています。修正する際はインデントに注意してください）。
+
+ここでは、 asia-northeast1 にデプロイするターゲットと、マルチターゲットを追加して、マルチターゲットを指定するように `targetId` を修正しています。
+
+```yaml
+# ...(略)...
+serialPipeline:
+  stages:
+  - targetId: run-qsdev
+    profiles: [dev]
+  # - targetId: run-qsprod
+  #   profiles: [prod]
+  # multi target
+  - targetId: run-qsprod-multi
+    profiles: [prod]
+    # ...(略)...
+---
+# ...(略)...
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: run-qsprod-multi
+description: production
+multiTarget:
+  targetIds: [run-qsprod, run-qsprod-tok]
+
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: run-qsprod-tok
+description: Cloud Run production service
+run:
+  location: projects/PROJECT_ID/locations/asia-northeast1
+```
+
+
 ## クリーンアップ
 
 このチュートリアルで使用したリソースについて、Google Cloud アカウントに課金されないようにするには、リソースを含むプロジェクトを削除するか、プロジェクトを維持して個々のリソースを削除します。
