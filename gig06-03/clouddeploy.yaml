@@ -9,18 +9,18 @@ serialPipeline:
     profiles: [dev]
   # - targetId: run-qsprod
   #   profiles: [prod]
-    ## canary deployment
-    # strategy:
-    #   canary:
-    #     runtimeConfig:
-    #       cloudRun:
-    #         automaticTrafficControl: true
-    #     canaryDeployment:
-    #       percentages: [5, 10, 25, 50]
-    #       verify: false
-    ## multi target
+  # multi target
   - targetId: run-qsprod-multi
     profiles: [prod]
+    ## canary deployment
+    strategy:
+      canary:
+        runtimeConfig:
+          cloudRun:
+            automaticTrafficControl: true
+        canaryDeployment:
+          percentages: [5, 10, 25, 50]
+          verify: false
 ---
 
 apiVersion: deploy.cloud.google.com/v1
