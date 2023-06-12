@@ -66,7 +66,7 @@
 
 次の図に、このチュートリアルで使用するリソースを示します。
 
-![](https://raw.githubusercontent.com/google-cloud-japan/gig-training-materials/16-gig-5-3-%E3%82%B3%E3%83%B3%E3%83%86%E3%83%B3%E3%83%84%E4%BD%9C%E6%88%90/gig05-03/img/app-development-and-delivery-with-cloud-code-gcb-cd-and-gke.png)
+![](https://raw.githubusercontent.com/google-cloud-japan/gig-training-materials/gig06-03/gig06-03/img/app-development-and-delivery-with-cloud-code-gcb-cd-and-run.png)
 
 このパイプラインを構成する 3 つの主要コンポーネントは次のとおりです。
 
