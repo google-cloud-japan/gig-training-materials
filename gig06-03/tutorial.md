@@ -66,7 +66,7 @@
 
 次の図に、このチュートリアルで使用するリソースを示します。
 
-![](img/diagram.png)
+![](https://raw.githubusercontent.com/google-cloud-japan/gig-training-materials/main/gig06-03/img/diagram.png)
 
 このパイプラインを構成する 3 つの主要コンポーネントは次のとおりです。
 
