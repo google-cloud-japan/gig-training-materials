@@ -559,6 +559,8 @@ serialPipeline:
 
 ここでは、 asia-northeast1 にデプロイするターゲットと、マルチターゲットを追加して、マルチターゲットを指定するように `targetId` を修正しています。
 
+ロールアウトの承認は子ターゲットではなくマルチターゲットに対して設定する必要があるので、`requireApproval: true` を `run-qsprod` から削除し、`run-qsprod-multi`へ移動します。
+
 ```yaml
 # ...(略)...
 serialPipeline:
@@ -579,6 +581,7 @@ kind: Target
 metadata:
   name: run-qsprod-multi
 description: production
+requireApproval: true
 multiTarget:
   targetIds: [run-qsprod, run-qsprod-tok]
 
