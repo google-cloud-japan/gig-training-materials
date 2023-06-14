@@ -7,6 +7,9 @@ serialPipeline:
   stages:
   - targetId: run-qsdev
     profiles: [dev]
+    # strategy:
+    #   standard:
+    #     verify: true
   - targetId: run-qsprod
     profiles: [prod]
   # multi target
@@ -37,6 +40,7 @@ kind: Target
 metadata:
   name: run-qsprod
 description: Cloud Run production service
+requireApproval: true
 run:
   location: projects/PROJECT_ID/locations/us-central1
 # ---

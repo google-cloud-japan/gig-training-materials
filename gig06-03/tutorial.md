@@ -518,14 +518,15 @@ gcloud run services set-iam-policy deploy-qs-prod policy.yaml --region=us-centra
 
 これで昇格して、本番環境へのデプロイが承認されました。最近変更したアプリケーションは、本番環境で動作するようになりました。
 
-## [Option] カナリアデプロイ戦略、複数ターゲットへのデプロイの設定
+## [Option] カナリアデプロイ戦略、複数ターゲットへのデプロイ、デプロイ後の確認の設定
 
-Cloud Deploy では、カナリアデプロイ戦略と複数のターゲットへのデプロイがサポートされています（2023/05 時点でプレビュー）。
+Cloud Deploy では、カナリアデプロイ戦略と複数のターゲットへのデプロイがサポートされています（2023/05 時点でプレビュー）。またデプロイ結果を確認することもできます（既にGA）。
 
 なお、ここでは `clouddeploy.yaml` の設定内容のみを記載しています。詳細な手順は、以下を参照してください。
 
 - [アプリケーションをターゲットにカナリア デプロイする](https://cloud.google.com/deploy/docs/deploy-app-canary?hl=ja)
 - [アプリを複数のターゲットに同時にデプロイする](https://cloud.google.com/deploy/docs/deploy-app-parallel?hl=ja)
+- [デプロイを確認する](https://cloud.google.com/deploy/docs/verify-deployment?hl=ja)
 
 ### カナリアデプロイ戦略
 
@@ -591,6 +592,32 @@ run:
   location: projects/PROJECT_ID/locations/asia-northeast1
 ```
 
+### デプロイ後の確認
+
+デプロイ後の確認を有効にするには、 `clouddeploy.yaml` のターゲットの設定に `strategy` 以下の3行を追記します。
+
+```yaml
+serialPipeline:
+  stages:
+    - targetId: run-qsdev
+      profiles: [dev]
+      strategy:
+        standard:
+          verify: true
+```
+
+実際の確認内容は `skaffold.yaml` に記載します。
+今回のチュートリアルでは、HTML ファイルの見出しを `GIG` に書き換えたので、正しく書き換えられているかどうかを検証しています。`$CLOUD_RUN_SERVICE_URLS` には Cloud Run の URL が自動的に設定されます。他に利用可能な環境変数はドキュメントを参照してください。
+
+```yaml
+verify:
+- name: verify-content-test
+  container:
+    name: curl
+    image: curlimages/curl
+    command: ["sh"]
+    args: ["-c", "curl --silent $CLOUD_RUN_SERVICE_URLS | grep GIG"]
+```
 
 ## クリーンアップ
 
