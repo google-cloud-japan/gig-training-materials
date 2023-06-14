@@ -23,6 +23,7 @@
 - 本番環境に変更をデプロイする
   - CI / CD パイプラインを開始してステージング環境にデプロイする
   - リリースを本番環境に昇格させる
+- [Option] カナリアデプロイ戦略、複数ターゲットへのデプロイ、デプロイ後の確認の設定
 - クリーンアップ
   - オプション1: プロジェクトを削除する
   - オプション2: 個々のリソースを削除する
@@ -246,7 +247,7 @@ gcloud config set project $PROJECT_ID
 1. ディレクトリを移動する
 
     ```sh
-    cd ~/gig-training-materials/gig06-03/
+    cd ~/cloudshell_open/gig-training-materials/gig06-03
     ```
 
 このソース リポジトリには、CI / CD パイプラインに必要な Cloud Build ファイルと Google Cloud Deploy ファイルが含まれています。
