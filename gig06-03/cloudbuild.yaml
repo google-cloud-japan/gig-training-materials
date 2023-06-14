@@ -9,7 +9,7 @@ steps:
   id: 'Push container image to Artifact Registry'
   dir: 'gig06-03'
   args: ['push', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/cicd-sample-repo/sample-image:${COMMIT_SHA}']
-- name: 'google/cloud-sdk:latest'
+- name: 'google/cloud-sdk:slim'
   id: 'Apply Delivery Pipeline into Cloud Deploy'
   entrypoint: 'sh'
   dir: 'gig06-03'
@@ -19,7 +19,7 @@ steps:
   - |
     sed -i s/PROJECT_ID/${PROJECT_ID}/g clouddeploy.yaml
     gcloud deploy apply --file clouddeploy.yaml --project ${PROJECT_ID} --region ${_REGION}
-- name: 'google/cloud-sdk:latest'
+- name: 'google/cloud-sdk:slim'
   id: 'Create a release in Cloud Deploy'
   entrypoint: 'sh'
   dir: 'gig06-03'
@@ -32,6 +32,4 @@ steps:
                         --region ${_REGION} \
                         --delivery-pipeline cicd-sample \
                         --images=my-app-image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/cicd-sample-repo/sample-image:${COMMIT_SHA}
-options:
-  machineType: E2_HIGHCPU_8
 timeout: 3600s
