@@ -92,7 +92,7 @@
 
     - [配信パイプライン](https://cloud.google.com/deploy/docs/terminology?hl=ja#delivery_pipeline)と[ターゲット](https://cloud.google.com/deploy/docs/terminology?hl=ja#target)を登録します。ターゲットはステージング クラスタと本番環境クラスタを表します。
     - Cloud Storage バケットを作成し、Skaffold レンダリング ソースとレンダリングされたマニフェストを作成したバケットに保存します。
-    - ソースコードを変更するたびに(新しいリリース)(https://cloud.google.com/deploy/docs/terminology?hl=ja#release)を行います。このチュートリアルには 1 つの変更点があるため、新しいリリースを 1 つ行います。
+    - ソースコードを変更するたびに[新しいリリース](https://cloud.google.com/deploy/docs/terminology?hl=ja#release)を行います。このチュートリアルには 1 つの変更点があるため、新しいリリースを 1 つ行います。
     - アプリケーションを本番環境にデプロイします。この本番環境へのデプロイでは、運用担当者(または指定した人)がデプロイを手動で承認します。このチュートリアルでは、本番環境は Cloud Run サービスです。
 
 Container & Kubernetes ネイティブ アプリケーションの継続的な開発を容易にするコマンドライン ツールである [Skaffold](https://skaffold.dev/) は、これらのコンポーネントの基盤であり、開発、ステージング、本番環境の間で構成を共有できます。
@@ -148,7 +148,7 @@ Google Cloud はアプリケーションのソースコードを GitHub に保�
 
 3. Artifact Registry, Cloud Build, Google Cloud Deploy, Cloud Source Repositories, Cloud Run, Resource Manager, and Service Networking API を有効にします。
 
-    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja&_ga=2.152803194.2113702237.1667787342-853816604.1666918848)
+    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja)
 
 4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
 
@@ -346,9 +346,9 @@ gcloud builds triggers create cloud-source-repositories \
 
 前のセクションで使用したのと同じ Cloud Shell エディタ インスタンスを使用します。エディタを閉じた場合は、ブラウザで [ide.cloud.google.com](https://ide.cloud.google.com/?hl=ja) に移動して Cloud Shell エディタを開きます。
 
-#### 1. Cloud Shell エディタの下部にあるペインで、**[Cloud Code]** を選択します。
+#### 1. Cloud Shell エディタの下部にあるステータスバーで、**[Cloud Code]** を選択します。
 
-#### 2. ターミナルとエディタの間に表示されるシンパネルで、**[Cloud Run Emulator で実行]** を選択します。
+#### 2. エディタの上部に表示される選択肢から、**[Run on Cloud Run Emulator]** を選択します。
 
 このコマンドにより、ソースコードがビルドされます。この処理には数分かかることがあります。
 
@@ -380,7 +380,7 @@ Cloud Code は、バックグラウンドの Cloud Run Emulator で実行され�
 
 #### 1. Cloud Shell エディタで、`index.html` ファイルを開きます。
 
-#### 2. 文字列 `Hello World!` を検索し、タイトルで小文字が使用されるように `Hello GIG!` に変更します。
+#### 2. 文字列 `Hello World!` を検索し、タイトルを `Hello GIG!` に変更します。
 
 ファイルは自動的に保存され、アプリケーション コンテナの再構築がトリガーされます。
 
@@ -448,13 +448,13 @@ git push google
 
 #### 3. 右側のビルドログで [**Running: cicd-sample - cicd-sample-main**] をクリックし、各ステップの開始と終了を示す青いテキストを探します。
 
-**ステップ 0** は、`cloudbuild.yaml` ファイルからの コンテナをビルドする手順の出力を示します。**ステップ 0**（パイプラインの CI 部分）のビルドタスクに合格したため、**ステップ 1**（パイプラインの CD 部分）のデプロイタスクが実行されるようになりました。
+**ステップ 0** は、`cloudbuild.yaml` ファイルからの コンテナをビルドする手順の出力を示します。**ステップ 0**（パイプラインの CI 部分）のビルドタスクに合格したため、**ステップ 2, 3**（パイプラインの CD 部分）のデプロイタスクが実行されるようになりました。
 
 このステップは正常に完了し、次のメッセージが表示されます。
 
-`Created Google Cloud Deploy rollout ROLLOUT_NAME in target staging`
+`Created Cloud Deploy release rel-ab12345.`
 
-#### 4. [Google Cloud Deploy 配信パイプライン ページ](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja)を開き、`cicd-sample delivery` パイプラインをクリックします。
+#### 4. [Google Cloud Deploy デリバリー パイプライン ページ](https://console.cloud.google.com/deploy/delivery-pipelines?hl=ja)を開き、`cicd-sample` パイプラインをクリックします。
 
 アプリケーションはステージング環境にデプロイされますが、本番環境にはデプロイされません。
 
@@ -490,15 +490,15 @@ Cloud Build トリガーを呼び出して CI プロセスを開始しました�
 
 #### 2. ステージング環境から本番環境にデプロイを昇格します。手順は次のとおりです。
 
-- ページの上部にあるパイプライン図で、ステージング ボックスの青色の [昇格] ボタンをクリックします。
+- ページの上部にあるパイプライン図で、ステージング ボックスの青色の [プロモート] ボタンをクリックします。
 
-- 表示されたウィンドウで、下部にある [昇格] ボタンをクリックします。
+- 表示されたウィンドウで、下部にある [プロモート] ボタンをクリックします。
 
   デプロイはまだ本番環境では実行されていません。必要な手動承認を待機しています。
 
 #### 3. デプロイを手動で承認します。
 
-  - パイプラインの可視化で、ステージング ボックスと本番環境ボックスの間の [**レビュー**] ボタンをクリックします。
+  - パイプラインの可視化で、ステージング ボックスと本番環境ボックスの間の [**確認**] ボタンをクリックします。
 
   - 表示されたウィンドウで [**レビュー**] ボタンをクリックします。
 
@@ -518,14 +518,15 @@ gcloud run services set-iam-policy deploy-qs-prod policy.yaml --region=us-centra
 
 これで昇格して、本番環境へのデプロイが承認されました。最近変更したアプリケーションは、本番環境で動作するようになりました。
 
-## [Option] カナリアデプロイ戦略、複数ターゲットへのデプロイの設定
+## [Option] カナリアデプロイ戦略、複数ターゲットへのデプロイ、デプロイ後の確認の設定
 
-Cloud Deploy では、カナリアデプロイ戦略と複数のターゲットへのデプロイがサポートされています（2023/05 時点でプレビュー）。
+Cloud Deploy では、カナリアデプロイ戦略と複数のターゲットへのデプロイがサポートされています（2023/05 時点でプレビュー）。またデプロイ結果を確認することもできます（既にGA）。
 
 なお、ここでは `clouddeploy.yaml` の設定内容のみを記載しています。詳細な手順は、以下を参照してください。
 
 - [アプリケーションをターゲットにカナリア デプロイする](https://cloud.google.com/deploy/docs/deploy-app-canary?hl=ja)
 - [アプリを複数のターゲットに同時にデプロイする](https://cloud.google.com/deploy/docs/deploy-app-parallel?hl=ja)
+- [デプロイを確認する](https://cloud.google.com/deploy/docs/verify-deployment?hl=ja)
 
 ### カナリアデプロイ戦略
 
@@ -558,6 +559,8 @@ serialPipeline:
 
 ここでは、 asia-northeast1 にデプロイするターゲットと、マルチターゲットを追加して、マルチターゲットを指定するように `targetId` を修正しています。
 
+ロールアウトの承認は子ターゲットではなくマルチターゲットに対して設定する必要があるので、`requireApproval: true` を `run-qsprod` から削除し、`run-qsprod-multi`へ移動します。
+
 ```yaml
 # ...(略)...
 serialPipeline:
@@ -578,6 +581,7 @@ kind: Target
 metadata:
   name: run-qsprod-multi
 description: production
+requireApproval: true
 multiTarget:
   targetIds: [run-qsprod, run-qsprod-tok]
 
@@ -591,6 +595,32 @@ run:
   location: projects/PROJECT_ID/locations/asia-northeast1
 ```
 
+### デプロイ後の確認
+
+デプロイ後の確認を有効にするには、 `clouddeploy.yaml` のターゲットの設定に `strategy` 以下の3行を追記します。
+
+```yaml
+serialPipeline:
+  stages:
+    - targetId: run-qsdev
+      profiles: [dev]
+      strategy:
+        standard:
+          verify: true
+```
+
+実際の確認内容は `skaffold.yaml` に記載します。
+今回のチュートリアルでは、HTML ファイルの見出しを `GIG` に書き換えたので、正しく書き換えられているかどうかを検証しています。`$CLOUD_RUN_SERVICE_URLS` には Cloud Run の URL が自動的に設定されます。他に利用可能な環境変数はドキュメントを参照してください。
+
+```yaml
+verify:
+- name: verify-content-test
+  container:
+    name: curl
+    image: curlimages/curl
+    command: ["sh"]
+    args: ["-c", "curl --silent $CLOUD_RUN_SERVICE_URLS | grep GIG"]
+```
 
 ## クリーンアップ
 
