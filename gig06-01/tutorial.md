@@ -139,7 +139,6 @@ gcloud config set run/platform managed
 ```bash
 gcloud services enable run.googleapis.com \
   firestore.googleapis.com \
-  appengine.googleapis.com \
   compute.googleapis.com
 ```
 
@@ -157,14 +156,9 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member "serviceAccount:$PROJECT_NUM-compute@developer.gserviceaccount.com"
 ```
 
-9. App Engine を初期化します。このラボでは App Engine を使用しませんが、次のステップで Firestore データベースを作成する前に App Engine を初期化する必要があります。
+9. Firestore データベースを作成します。
 ```bash
-gcloud app create --region $REGION
-```
-
-10. Firestore データベースを作成します。
-```bash
-gcloud firestore databases create --region $REGION
+gcloud firestore databases create --location $REGION
 ```
 
 ### metrics-writer コンテナをローカルで実行する
