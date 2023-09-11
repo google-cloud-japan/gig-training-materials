@@ -8,6 +8,13 @@
 
 **なるべく新しいプロジェクトが望ましいです。**
 
+### 必要なロール
+
+ハンズオンを進めるためには以下 **1** or **2** の何れかの IAM ロールが必要です。
+
+1. [オーナー](https://cloud.google.com/iam/docs/understanding-roles#basic)
+2. [編集者](https://cloud.google.com/iam/docs/understanding-roles#basic)、[Project IAM 管理者](https://cloud.google.com/iam/docs/understanding-roles#resourcemanager.projectIamAdmin)、[Cloud Datastore オーナー](https://cloud.google.com/iam/docs/understanding-roles#datastore.owner)、[Cloud Run 管理者](https://cloud.google.com/iam/docs/understanding-roles#run.admin)
+
 それでは最初に、ハンズオンを進めるための環境準備を行います。
 
 #### GCP のプロジェクト ID を環境変数に設定
