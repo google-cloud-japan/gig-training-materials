@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <title>Additional Content</title>
+  </head>
+  <body>
+    <h2>Image Label Prediction</h2>
+      <form method="POST" enctype="multipart/form-data">
+    	<input type="file" name="file" accept="image/*">
+    	<input type="submit" value="アップロード">
+    </form>
+    <br>
+    {% if img!="" %}
+    <div>
+	<img src="{{img}}" alt="image" width="20%" height="20%">
+    </div>
+    {% endif %}
+    <div>
+    	<p>{{post}}</p>
+    </div>
+  </body>
+</html>
