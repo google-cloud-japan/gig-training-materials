@@ -129,24 +129,24 @@ git clone https://github.com/google-cloud-japan/gig-training-materials.git
 
 3. リポジトリディレクトリに移動します。
 ```bash
-cd gig07-01
+cd gig-training-materials/gig07-01
 ```
 
-4. スクリプトを実行して、プロジェクト ID とデフォルトリージョンのシェル変数を設定します。
-```bash
-source vars.sh
-```
-
-5. デフォルトで Cloud Run のマネージド環境を利用するよう、 `gcloud` コマンドで設定します。
-```bash
-gcloud config set run/platform managed
-```
-
-6. 必要な API を有効にします。
+4. 必要な API を有効にします。
 ```bash
 gcloud services enable run.googleapis.com \
   firestore.googleapis.com \
   compute.googleapis.com
+```
+
+5. スクリプトを実行して、プロジェクト ID とデフォルトリージョンのシェル変数を設定します。
+```bash
+source vars.sh
+```
+
+6. デフォルトで Cloud Run のマネージド環境を利用するよう、 `gcloud` コマンドで設定します。
+```bash
+gcloud config set run/platform managed
 ```
 
 7. GCP のプロジェクト番号を環境変数に設定します。
@@ -618,17 +618,17 @@ gcloud run services update metrics-writer \
 curl $WRITER_URL
 ```
 
-サービス URL へのリクエストは拒否されます。 HTTP 403(禁止) エラーを説明する HTML ページが表示されます。インターネット上でサービス URL にアクセスできなくなりました。
+サービス URL へのリクエストは拒否されます。 HTTP 404(未検出) エラーを説明する HTML ページが表示されます。インターネット上でサービス URL にアクセスできなくなりました。
 
 **Output**
 ```terminal
 <html><head>
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
-<title>403 Forbidden</title>
+<title>404 Not Found</title>
 </head>
 <body text=#000000 bgcolor=#ffffff>
-<h1>Error: Forbidden</h1>
-<h2>Access is forbidden.</h2>
+<h1>Error: Not Found</h1>
+<h2>The requested URL <code>/</code> was not found on this server.</h2>
 <h2></h2>
 </body></html>
 ```
