@@ -577,7 +577,7 @@ TARGET: lb-http-http-proxy
 
 4. ロードバランサーの IP アドレスのシェル変数を設定します。
 ```bash
-export LB_IP=$(gcloud compute forwarding-rules list --format='value(IP_ADDRESS)')
+export LB_IP=$(gcloud compute forwarding-rules describe lb-http --global --format 'value(IPAddress)')
 ```
 
 5. ロードバランサーが完全にオンラインになるまで **1分** 待ちます。
