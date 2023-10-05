@@ -153,14 +153,10 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
 # 4. Cloud SQL のセットアップ
 `gcloud sql instances create` コマンドを実行して、Cloud SQL インスタンスを作成します。
 
-– **-database-version**: データベースエンジンのタイプとバージョンの指定。指定されない場合は API のデフォルト値が使用されます。詳しくは gcloud データベース バージョンに関する [ドキュメント] (https://cloud.google.com/sql/docs/db-versions?hl=ja) に記載されている現在利用可能なバージョンをご確認下さい。
-
-– **-cpu**: インスタンスに必要とされる CPU コアの数
-
-– **-memory**: インスタンスに必要とされるメモリ容量 (例: 3072MB, 9GB)
-
+- **-database-version**: データベースエンジンのタイプとバージョンの指定。指定されない場合は API のデフォルト値が使用されます。詳しくは gcloud データベース バージョンに関する [ドキュメント] (https://cloud.google.com/sql/docs/db-versions?hl=ja) に記載されている現在利用可能なバージョンをご確認下さい。
+- **-cpu**: インスタンスに必要とされる CPU コアの数
+- **-memory**: インスタンスに必要とされるメモリ容量 (例: 3072MB, 9GB)
 - **–region**: インスタンスを配置するリージョン (例: us-central1, asia-northeast1, us-east1)
-
 - **–database-flags**: データベースエンジン固有のパラメータであるフラグの設定。このケースでは、Cloud Run から Cloud SQL へのサービスアカウントによる接続を許可するために  `cloudsql.iam_authentication` というフラグを On にします。
 
 ```bash
@@ -390,7 +386,7 @@ gcloud services enable \
 git clone https://github.com/GoogleCloudPlatform/cymbal-eats.git
 ```
 
-1. ディレクトリ移動
+4. ディレクトリ移動
 
 ```bash
 cd cymbal-eats/inventory-service/spanner
@@ -413,7 +409,7 @@ Example Output
 Creating instance...done.
 ```
 
-1. Spanner インスタンスが正しく設定されているか確認
+2. Spanner インスタンスが正しく設定されているか確認
 
 ```bash
 gcloud spanner instances list
