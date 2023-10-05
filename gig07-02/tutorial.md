@@ -1,34 +1,106 @@
-# WORK IN PROGRESS
+# G.I.G. 07-02 データベースセクションハンズオン
 
-# How to connect a Node.js application on Cloud Run to a Cloud SQL for PostgreSQL database
+## 環境準備
 
-# 1. Overview
+### Google Cloud プロジェクトの選択
 
-The [Cloud SQL Node.js connector](https://github.com/GoogleCloudPlatform/cloud-sql-nodejs-connector#readme) is the easiest way to securely connect your Node.js application to your Cloud SQL database. [Cloud Run](https://cloud.google.com/run) is a fully managed serverless platform that enables you to run stateless containers that are invocable via HTTP requests. This Codelab will demonstrate how to connect a Node.js application on Cloud Run to a Cloud SQL for PostgreSQL database securely with a service account using IAM Authentication.
+ハンズオンを行う Google Cloud プロジェクトをまだ作成されていない場合は、[こちらのリンク](https://console.cloud.google.com/projectcreate) から新しいプロジェクトを作成してください。
 
-## What you will learn
+**なるべく新しいプロジェクトが望ましいです。**
 
-In this lab, you will learn how to do the following:
+それでは最初に、ハンズオンを進めるための環境準備を行います。
 
-- Create a Cloud SQL instance for PostgreSQL database
-- Deploy a Node.js application to Cloud Run
-- Connect your application to your database using the Cloud SQL Node.js Connector library
+#### GCP のプロジェクト ID を環境変数に設定
 
-## Prerequisites
+環境変数 `GOOGLE_CLOUD_PROJECT` に GCP プロジェクト ID を設定します。[GOOGLE_CLOUD_PROJECT_ID] 部分にご使用になられる Google Cloud プロジェクトの ID を入力してください。
+例: `export PROJECT_ID=gig7-2`
 
-This lab assumes familiarity with the Cloud Console and Cloud Shell environments.
+```bash
+export GOOGLE_CLOUD_PROJECT=[GOOGLE_CLOUD_PROJECT_ID]
+```
 
-# 2. Before you begin
+#### CLI（gcloud コマンド）から利用する GCP のデフォルトプロジェクトを設定
 
-## Cloud Project setup
+操作対象のプロジェクトを設定します。
 
-TODO: pull the contents from the previous tutorial
+```bash
+gcloud config set project $GOOGLE_CLOUD_PROJECT
+```
 
-## Environment Setup
+デフォルトのリージョンを設定します。
 
-Activate Cloud Shell by clicking on the icon to the right of the search bar.
+```bash
+gcloud config set compute/region asia-northeast1
+```
 
-From Cloud Shell, enable the APIs:
+以下のコマンドで、現在の設定を確認できます。
+```bash
+gcloud config list
+```
+
+### ProTips
+gcloud コマンドには、config 設定をまとめて切り替える方法があります。
+アカウントやプロジェクト、デフォルトのリージョン、ゾーンの切り替えがまとめて切り替えられるので、おすすめの機能です。
+
+```bash
+gcloud config configurations list
+```
+
+## **参考: Cloud Shell の接続が途切れてしまったときは?**
+
+一定時間非アクティブ状態になる、またはブラウザが固まってしまったなどで `Cloud Shell` が切れてしまう、またはブラウザのリロードが必要になる場合があります。その場合は以下の対応を行い、チュートリアルを再開してください。
+
+### **1. チュートリアル資材があるディレクトリに移動する**
+
+```bash
+cd ~/cloudshell_open/gig-training-materials/gig07-02/
+```
+
+### **2. チュートリアルを開く**
+
+```bash
+teachme tutorial.md
+```
+
+---
+
+# Cloud Run 上の Node.js アプリケーションを Cloud SQL for PostgreSQL データベースに接続する
+
+# 1. **概要**
+
+[Cloud SQL Node.js コネクタ](https://github.com/GoogleCloudPlatform/cloud-sql-nodejs-connector#readme) は、 Node.js アプリケーションを Cloud SQL データベースに接続する最も簡単かつセキュアに接続する方法です。また、 [Cloud Run](https://cloud.google.com/run) は、 HTTP リクエストで呼び出すことが出来、ステートレスなコンテナを動かすことを可能にするフルマネージドなサーバーレスプラットフォームです。このラボでは、 Cloud Run 上の Node.js アプリケーションを Cloud SQL for PostgreSQL にサービスアカウントと IAM 認証を使ってセキュアに接続する方法を試します。
+
+## **目的**
+
+このハンズオンでは、次の内容を実行します。
+
+- Cloud SQL の PostgreSQL インスタンスを作成します。
+- Node.js アプリケーションを Cloud Run にデプロイします。
+- Cloud SQL Node.js コネクタライブラリを使ってアプリケーションをデータベースに接続します。
+
+## 前提条件
+
+このハンズオンは、Cloud Console および Cloud Shell 環境の理解を前提としています。
+
+# 2. 始める前に
+
+## 環境のセットアップ
+
+1. `Cloud Shell` を開きます。
+
+>Note: README の青い`OPEN IN GOOGLE CLOUD SHELL` ボタンから開始された場合は、すでにリポジトリはクローンされていますので、4 にスキップしてください。
+
+2. このハンズオンのスクリプトを含む git リポジトリをクローンします。 gcloud の承認を求められた場合は、承認してください。
+```bash
+git clone https://github.com/google-cloud-japan/gig-training-materials.git
+```
+
+3. リポジトリディレクトリに移動します。
+```bash
+cd gig07-02
+```
+
+4. Cloud Shell から API を有効にします。:
 
 ```bash
 gcloud services enable compute.googleapis.com sqladmin.googleapis.com \
@@ -36,24 +108,24 @@ gcloud services enable compute.googleapis.com sqladmin.googleapis.com \
   cloudbuild.googleapis.com servicenetworking.googleapis.com
 ```
 
-This command may take a few minutes to complete, but it should eventually produce a successful message similar to this one:
+このコマンドは完了するまでに数分かかる場合がありますが、最終的には次のような成功メッセージが表示されるはずです。:
 
-```bash
+```
 Operation "operations/acf.p2-327036483151-73d90d00-47ee-447a-b600-a6badf0eceae" finished successfully.
 ```
 
-# 3. Set up a Service Account
+# 3. サービスアカウントのセットアップ
 
-Create and configure a Google Cloud service account to be used by Cloud Run so that it has the correct permissions to connect to Cloud SQL.
+Cloud Run が使用するサービスアカウントを作成し、Cloud SQL への正しいアクセス権を割り当てます。
 
-1. Run the gcloud iam service-accounts create command as follows to create a new service account:
+1. `gcloud iam service-accounts create` コマンドを実行して新しいサービスアカウントを作成します。:
 
 ```bash
 gcloud iam service-accounts create quickstart-service-account \
   --display-name="Quickstart Service Account"
 ```
 
-2. Run the gcloud projects add-iam-policy-binding command as follows to add the Cloud SQL Client role to the Google Cloud service account you just created. In Cloud Shell, the expression ${GOOGLE_CLOUD_PROJECT} will be replaced by the name of your project. You can also do this replacement manually if you feel more comfortable with that.
+1. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud SQL クライアントの権限を割り当てます。
 
 ```bash
 gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
@@ -61,7 +133,7 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
   --role="roles/cloudsql.client"
 ```
 
-3. Run the gcloud projects add-iam-policy-binding command as follows to add the **Cloud SQL Instance User** role to the Google Cloud service account you just created.
+3. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud SQL インスタンス ユーザーの権限を割り当てます。
 
 ```bash
 gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
@@ -70,7 +142,7 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
 
 ```
 
-4. Run the gcloud projects add-iam-policy-binding command as follows to add the **Log Writer** role to the Google Cloud service account you just created.
+4. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud Logging ログ書き込み権限を割り当てます。
 
 ```bash
 gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
@@ -78,14 +150,18 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
   --role="roles/logging.logWriter"
 ```
 
-# 4. Set up Cloud SQL
-Run the `gcloud sql instances create` command to create a Cloud SQL instance.
+# 4. Cloud SQL のセットアップ
+`gcloud sql instances create` コマンドを実行して、Cloud SQL インスタンスを作成します。
 
-– **-database-version**: The database engine type and version. If left unspecified, the API default is used. See the gcloud database versions documentation to see the current available versions.
-– **-cpu**: The number of cores desired in the machine.
-– **-memory**: Whole number value indicating how much memory is desired in the machine. A size unit should be provided (for example, 3072MB or 9GB). If no units are specified, GB is assumed.
-- **–region**: Regional location of the instance (for example: us-central1, asia-east1, us-east1).
-- **–database-flags**: Allows setting flags. In this case, we are turning on cloudsql.iam_authentication to enable Cloud Run to connect to Cloud SQL using the service account we created before.
+– **-database-version**: データベースエンジンのタイプとバージョンの指定。指定されない場合は API のデフォルト値が使用されます。詳しくは gcloud データベース バージョンに関する [ドキュメント] (https://cloud.google.com/sql/docs/db-versions?hl=ja) に記載されている現在利用可能なバージョンをご確認下さい。
+
+– **-cpu**: インスタンスに必要とされる CPU コアの数
+
+– **-memory**: インスタンスに必要とされるメモリ容量 (例: 3072MB, 9GB)
+
+- **–region**: インスタンスを配置するリージョン (例: us-central1, asia-northeast1, us-east1)
+
+- **–database-flags**: データベースエンジン固有のパラメータであるフラグの設定。このケースでは、Cloud Run から Cloud SQL へのサービスアカウントによる接続を許可するために  `cloudsql.iam_authentication` というフラグを On にします。
 
 ```bash
 gcloud sql instances create quickstart-instance \
@@ -97,16 +173,16 @@ gcloud sql instances create quickstart-instance \
 
 ```
 
-This command may take a few minutes to complete.
+このコマンドの完了には数分掛かります。
 
-Run the `gcloud sql databases create` command to create a Cloud SQL database within the `quickstart-instance`.
+`gcloud sql databases create` コマンドを実行して、 `quickstart-instance` の中に Cloud SQL データベースを作成します。
 
 ```bash
 gcloud sql databases create quickstart_db \
   --instance=quickstart-instance
 ```
 
-Create a PostgreSQL database user for the service account you created earlier to access the database.
+サービスアカウントを使ってデータベースにアクセスさせるため、先に作成したサービスアカウントと同名の PostgreSQL データベース ユーザーを作成します。
 
 ```bash
 gcloud sql users create quickstart-service-account@${GOOGLE_CLOUD_PROJECT}.iam \
@@ -114,18 +190,19 @@ gcloud sql users create quickstart-service-account@${GOOGLE_CLOUD_PROJECT}.iam \
   --type=cloud_iam_service_account
 ```
 
-# 5. Prepare Application
+# 5. アプリケーションの準備
 
-Prepare a Node.js application that responds to HTTP requests.
+HTTP リクエストに応答する Node.js アプリケーションを準備します。
 
-1. In Cloud Shell create a new directory named `helloworld`, then change into that directory:
+1. Cloud Shell で「helloworld」という名前の新しいディレクトリを作成し、そのディレクトリに移動します:
 
 ```bash
 mkdir helloworld
 cd helloworld
 ```
 
-2. Initialize a `package.json` file as a module.
+2. `package.json` ファイルをモジュールとして初期化します。
+
 ```bash
 npm init -y
 npm pkg set type="module"
@@ -133,32 +210,32 @@ npm pkg set main="index.mjs"
 npm pkg set scripts.start="node index.mjs"
 ```
 
-3. Install the Cloud SQL Node.js connector dependency.
+3. Cloud SQL Node.js コネクタの依存関係をインストールします。
 
 ```bash
 npm install @google-cloud/cloud-sql-connector
 ```
 
-4. Install `pg` to interact with the PostgreSQL database.
+4. PostgreSQL データベースと対話するために、`pg` をインストールします。
 
 ```bash
 npm install pg
 ```
 
-5. Install express accept incoming http requests.
+5. HTTP リクエストを受信するために、 `express` をインストールします。
 
 ```bash
 npm install express
 ```
 
-6. Create an `index.mjs` file with the application code. This code is able to:
+6. リケーション コードを含む `index.mjs` ファイルを作成します。 このコードでは次のことが可能です:
 
-- Accept HTTP requests
-- Connect to the database
-- Store the time of the HTTP request in the database
-- Return the times of the last five requests
+- HTTPリクエストを受け入れる
+- データベースに接続する
+- HTTPリクエストの時刻をデータベースに保存する
+- 最後の 5 つのリクエストの時間を返す
 
-Run the following command in Cloud Shell:
+Cloud Shell で次のコマンドを実行します:
 
 ```bash
 cat > index.mjs << "EOF"
@@ -203,17 +280,17 @@ app.listen(port, async () => {
 EOF
 ```
 
-This code creates a basic web server that listens on the port defined by the PORT environment variable. The application is now ready to be deployed.
+このコードは、PORT 環境変数で定義されたポートをリッスンする基本的な Web サーバーを作成します。 これで、アプリケーションをデプロイする準備が整いました。
 
-# 6. Deploy Cloud Run Application
+# 6. Cloud Run アプリケーションのデプロイ
 
-Run the command below to deploy your application to Cloud Run:
+以下のコマンドを実行して、アプリケーションを Cloud Run にデプロイします。コマンドのオプションはそれぞれ以下の意味を持ちます:
 
-- **–region**: Regional location of the instance (for example: us-central1, asia-east1, us-east1).
-- **–source**: The source code to be deployed. In this case, . refers to the source code in the current folder helloworld.
-- **–set-env-vars**: Sets environment variables used by the application to direct the application to the Cloud SQL database.
-- **–service-account**: Ties the Cloud Run deployment to the service account with permissions to connect to the Cloud SQL database created at the beginning of this Codelab.
-- **–allow-unauthenticated**: Allows unauthenticated requests so that the application is accessible from the internet.
+- **–region**: インスタンスの地域の場所 (例: us-central1、asia-east1、us-east1)。
+- **–source**: デプロイするソースコードのパス。この場合、現在のフォルダー helloworld 内のソースコードを参照します。
+- **–set-env-vars**: アプリケーションを Cloud SQL データベースに誘導するためにアプリケーションで使用される環境変数を設定します。
+- **–service-account**: このラボの冒頭で作成した Cloud SQL データベースに接続する権限を持つサービス アカウントに Cloud Run サービスを関連付けます。
+- **–allow-unauthenticated**: アプリケーションがインターネットからアクセスできるように、未認証のリクエストを許可します。
 
 ```bash
 gcloud run deploy helloworld \
@@ -226,36 +303,40 @@ gcloud run deploy helloworld \
   --allow-unauthenticated
 ```
 
-If prompted, press `**y**` and `**Enter**` to confirm that you would like to continue:
+プロンプトが表示されたら、「**y**」と「**Enter**」を押して続行することを確認します:
 
 ```bash
 Do you want to continue (Y/n)? y
 ```
 
-After a few minutes, the application should provide a URL for you to visit.
+数分後、アプリケーションにアクセスするための URL が出力されます
 
-Navigate to the URL to see your application in action. Every time you visit the URL or refresh the page, you will see the five most recent visits returned as JSON.
+URL に移動して、アプリケーションの動作を確認します。 URL にアクセスするか、ページを更新するたびに、最近 5 件の訪問が JSON 形式で返されることがわかります。
 
-# 7. Congratulations
+# 7. おめでとうございます!!
 
-You have deployed a Node.js application on Cloud Run taht is able to connect to a PostgreSQL database running on Cloud SQL.
+Cloud SQL 上で実行されている PostgreSQL データベースに接続できる Node.js アプリケーションを Cloud Run にデプロイしました。
 
-## What we've covered:
-- Creating a Cloud SQL for PostgreSQL database
-- Deploying a Node.js application to Cloud Run
-- Connecting your application to Cloud SQL using the Cloud SQL Node.js Connector
+## このセクションでカバーした内容
+- Cloud SQL for PostgreSQL データベースの作成
+- Cloud Run への Node.js アプリケーションのデプロイ
+- Cloud SQL Node.js コネクタを使用したアプリケーションの Cloud SQL への接続
 
-## Clean up
-To avoid incurring charges to your Google Cloud account for the resources used in this tutorial, either delete the project that contains the resources, or keep the project and delete the individual resources. If you would like to delete the entire project, you can run:
+## クリーンアップ
+このチュートリアルで使用するリソースに対して料金が発生しないようにするには、リソースを含むプロジェクトを削除するか、プロジェクトを保持して個々のリソースを削除します。プロジェクト全体を削除したい場合は、次のコマンドを実行できます:
 
 ```bash
-gcloud projects delet ${GOOGLE_CLOUD_PROJECT}
+gcloud projects delete ${GOOGLE_CLOUD_PROJECT}
 ```
+おつかれさまでした。
+
+---
+
 
 # Cloud Run からフルマネージドデータベース - Cloud Spanner & Cloud Firestore につなげよう
 
 # 1. 概要
-このラボでは、サーバーレスデータベース (Spanner と Firestore) を Cloud Run で稼働しているアプリケーション (Go と Node.js) とつなげます。Cymbal Eats アプリケーションには、Cloud Run で実行されている複数のサービスが含まれています。
+このセクションでは、サーバーレスデータベース (Spanner と Firestore) を Cloud Run で稼働しているアプリケーション (Go と Node.js) とつなげます。Cymbal Eats アプリケーションには、Cloud Run で実行されている複数のサービスが含まれています。
 このハンズオンでは、[Cloud Spanner](https://cloud.google.com/spanner) (リレーショナル データベース) と [Cloud Firestore](https://cloud.google.com/firestore) ( NoSQL ドキュメント データベース) を使用するようにサービスを構成します。 データ層とアプリケーション ランタイムにサーバーレス製品を利用すると、すべてのインフラストラクチャ管理を抽象化し、オーバーヘッドを気にせずにアプリケーションの構築に集中できます。
 
 # 2. このハンズオンで学べること
@@ -270,9 +351,11 @@ gcloud projects delet ${GOOGLE_CLOUD_PROJECT}
 
 # 3. セットアップと要件
 
-## Google Cloud Project の準備 <= これはいらんか？
+## Google Cloud Project の準備
 
-[WIP]
+ハンズオンを行う Google Cloud プロジェクトをまだ作成されていない場合は、[こちらのリンク](https://console.cloud.google.com/projectcreate) から新しいプロジェクトを作成してください。
+
+**なるべく新しいプロジェクトが望ましいです。**
 
 ## 環境の準備
 
@@ -283,7 +366,7 @@ export PROJECT_ID=$(gcloud config get-value project)
 export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
 export SPANNER_INSTANCE=inventory-instance
 export SPANNER_DB=inventory-db
-export REGION=us-east1
+export REGION=asia-northeast1
 export SPANNER_CONNECTION_STRING=projects/$PROJECT_ID/instances/$SPANNER_INSTANCE/databases/$SPANNER_DB
 ```
 
@@ -638,7 +721,7 @@ SELECT * FROM InventoryHistory WHERE ItemID=1
 
 Cloud Console には、クエリの実行プランが視覚的に表示されます。
 
-![](img/gig07_02-spanner-concept.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-spanner-concept.png)
 
 > 概念的には、実行計画は関係演算子のツリーです。 各演算子は入力から行を読み取り、出力行を生成します。 実行のルートが SQL クエリの結果として返されます。
 
@@ -766,7 +849,7 @@ Cloud コンソール の Metrics Explorer を使用して、データベース 
 
 4. [**グループ化**] フィールドで、データベース、optimizer_version、ステータスを選択します。
 
-![](img/gig07_02-metrics-explorer.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-metrics-explorer.png)
 
 # 7. Create and Configure a Firestore Database
 
@@ -774,7 +857,7 @@ Firestore is a NoSQL document database built for automatic scaling, high perform
 
 The following task will guide you through creating an ordering service Cloud Run application backed by Firestore. The ordering service will call the inventory service created in the previous section to query the Spanner database before starting the order. This service will ensure sufficient inventory exists and the order can be filled.
 
-![](img/gig07_02-firestore.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore.png)
 
 # 8. Firestore Concept
 
@@ -782,13 +865,13 @@ The following task will guide you through creating an ordering service Cloud Run
 
 A Firestore database is made up of collections and documents.
 
-![](img/gig07_02-firestore02.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore02.png)
 
 ### Documents
 
 Each document contains a set of key-value pairs. Firestore is optimized for storing large collections of small documents.
 
-![](img/gig07_02-firestore03.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore03.png)
 
 > In the example above, the order id document contains four key-value pairs. The key orderItems include an array of key-value pairs.
 
@@ -796,7 +879,7 @@ Each document contains a set of key-value pairs. Firestore is optimized for stor
 
 You must store all documents in collections. Documents can contain subcollections and nested objects, including primitive fields like strings or complex objects like lists.
 
-![](img/gig07_02-firestore04.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore04.png)
 
 > The order id document is stored in the orders collection in the example above.
 
@@ -1084,7 +1167,7 @@ View the results in Firestore
 
 2. Click on Data
 
-![](img/gig07_02-firestore05.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore05.png)
 
 ## Update a document
 
@@ -1118,7 +1201,7 @@ View the results in Firestore
 
 2. Click on Data
 
-![](img/gig07_02-firestore06.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore06.png)
 
 > When updating the NoSQL structure in Firestore using patch(), only the items which are passed in the call are updated.
 
@@ -1137,7 +1220,7 @@ Navigate to the Firestore console
 
 2. Click on Data
 
-![](img/gig07_02-firestore07.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore07.png)
 
 > Document 46429 has been deleted, but the orders collections remain.
 
