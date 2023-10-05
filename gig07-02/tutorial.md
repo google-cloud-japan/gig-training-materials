@@ -252,32 +252,31 @@ To avoid incurring charges to your Google Cloud account for the resources used i
 gcloud projects delet ${GOOGLE_CLOUD_PROJECT}
 ```
 
-# Connecting to Fully Managed Databases from Cloud Run
+# Cloud Run からフルマネージドデータベース - Cloud Spanner & Cloud Firestore につなげよう
 
-# 1. Overview
-In this lab, you will integrate serverless databases(Spanner and Firestore) with applications(Go and Node.js) running in Cloud Run. The Cymbal Eats application includes multiple services which run on Cloud Run. In the following steps, you will configure services to use the [Cloud Spanner](https://cloud.google.com/spanner) relational database and [Cloud Firestore](https://cloud.google.com/firestore), a NoSQL document database. Utilizing serverless products for the data tier and the application runtime allows you to abstract away all infrastructure management, focusing on building your application instead of worrying about overhead.
+# 1. 概要
+このラボでは、サーバーレスデータベース (Spanner と Firestore) を Cloud Run で稼働しているアプリケーション (Go と Node.js) とつなげます。Cymbal Eats アプリケーションには、Cloud Run で実行されている複数のサービスが含まれています。
+このハンズオンでは、[Cloud Spanner](https://cloud.google.com/spanner) (リレーショナル データベース) と [Cloud Firestore](https://cloud.google.com/firestore) ( NoSQL ドキュメント データベース) を使用するようにサービスを構成します。 データ層とアプリケーション ランタイムにサーバーレス製品を利用すると、すべてのインフラストラクチャ管理を抽象化し、オーバーヘッドを気にせずにアプリケーションの構築に集中できます。
 
-# 2. What you will learn
-In this lab, you will learn how to do the following:
+# 2. このハンズオンで学べること
+このハンズオンでは以下について学習します:
 
-- Integrate Spanner
-- Enable Spanner Managed Services
-- Integrate into code
-- Deploy code connecting to Spanner
-- Integrate Firestore
-- Enable Firestore Managed Services
-- Integrate into code
-- Deploy code connecting to Firestore
+- Cloud Spanner
+  - Cloud Spanner マネージドサービス を有効にする
+  - アプリをデプロイして Spanner に接続する
+- Cloud Firestore
+  - Cloud Firestore マネージドサービスを有効にする
+  - アプリをデプロイして Firestore に接続する
 
-# 3. Setup and Requirements
+# 3. セットアップと要件
 
-## Self-paced environment setup
+## Google Cloud Project の準備 <= これはいらんか？
 
 [WIP]
 
-## Setup Environment
+## 環境の準備
 
-1. Create a project ID variable
+1. プロジェクト ID 変数の定義
 
 ```bash
 export PROJECT_ID=$(gcloud config get-value project)
@@ -288,7 +287,7 @@ export REGION=us-east1
 export SPANNER_CONNECTION_STRING=projects/$PROJECT_ID/instances/$SPANNER_INSTANCE/databases/$SPANNER_DB
 ```
 
-2. Enable Spanner, Cloud Run, Cloud Build, and Artifact Registry APIs
+2. 各 API の有効化 - Spanner, Cloud Run, Cloud Build, Artifact Registry
 
 ```bash
 gcloud services enable \
@@ -302,24 +301,26 @@ gcloud services enable \
      artifactregistry.googleapis.com
 ```
 
-3. Clone the repository
+3. リポジトリのクローン
 
 ```bash
 git clone https://github.com/GoogleCloudPlatform/cymbal-eats.git
 ```
 
-4. Navigate into the directory
+1. ディレクトリ移動
 
 ```bash
 cd cymbal-eats/inventory-service/spanner
 ```
 
-# 4. Create and Configure a Spanner instance
+# 4. Cloud Spanner インスタンスの作成と設定
 
-Spanner is the inventory services backend relational database. You will create a Spanner instance, database, and schema in the following steps.
+Spanner は、インベントリ サービスのバックエンド リレーショナル データベースです。 次の手順で、Spanner インスタンス、データベース、およびスキーマを作成します。
 
-## Create an instance
-1. Create a Cloud Spanner instance
+## インスタンスの作成
+
+1. Spanner インスタンスを作成
+
 ```bash
 gcloud spanner instances create $SPANNER_INSTANCE --config=regional-${REGION} \
 --description="Cymbal Menu Inventory" --nodes=1
@@ -329,7 +330,7 @@ Example Output
 Creating instance...done.
 ```
 
-2. Verify if the Spanner instance is correctly configured
+1. Spanner インスタンスが正しく設定されているか確認
 
 ```bash
 gcloud spanner instances list
@@ -345,17 +346,17 @@ PROCESSING_UNITS: 100
 STATE: READY
 ```
 
-## Create a database and schema
+## データベースとスキーマの作成
 
-Create a new database and use [Google standard SQL's data definition language(DDL)](https://cloud.google.com/spanner/docs/reference/standard-sql/data-definition-language) to create the database schema.
+新しいデータベースを作成し、[Google 標準 SQL のデータ定義言語 (DDL)](https://cloud.google.com/spanner/docs/reference/standard-sql/data-defining- language) を使用してデータベース スキーマを作成します。
 
-1. Create a DDL file
+1. DDL file を作成
 
 ```bash
 echo "CREATE TABLE InventoryHistory (ItemRowID STRING (36) NOT NULL, ItemID INT64 NOT NULL, InventoryChange INT64, Timestamp TIMESTAMP) PRIMARY KEY(ItemRowID)" >> table.ddl
 ```
 
-2. Create the Spanner database
+2. Spanner database を作成
 
 ```bash
 gcloud spanner databases create $SPANNER_DB \
@@ -369,9 +370,9 @@ Example output
 Creating database...done.
 ```
 
-## Verify Database state and schema
+## データベースの状態とスキーマを確認する
 
-1. View the state of the database
+1. データベースの状態を表示する
 
 ```bash
 gcloud spanner databases describe $SPANNER_DB \
@@ -391,9 +392,9 @@ state: READY
 versionRetentionPeriod: 1h
 ```
 
-> Note: The database's state shows as READY
+> Note: データベースの状態が READY と表示される
 
-2. View the schema of the database
+2. データベースのスキーマを表示する
 
 ```bash
 gcloud spanner databases ddl describe $SPANNER_DB \
@@ -411,28 +412,30 @@ CREATE TABLE InventoryHistory (
 ) PRIMARY KEY(ItemRowID);
 ```
 
-> **Note**: The database has four columns. The ItemRowID is the primary key.
-> You can also view the details in the [Spanner Overview Console](https://console.cloud.google.com/spanner/instances/inventory-instance/details/databases)
+> **Note**: データベースには 4 つの列があります。 ItemRowID が主キーです。
+> [Spanner 概要コンソール](https://console.cloud.google.com/spanner/instances/inventory-instance/details/databases) で詳細を確認することもできます。
 
-# 5. Integration Spanner
+# 5. Spanner インテグレーション
 
-In this section, you will learn how to integrate Spanner into your application. In addition, SQL Spanner provides [Client libraries](https://cloud.google.com/spanner/docs/reference/libraries), [JDBC drivers](https://cloud.google.com/spanner/docs/jdbc-drivers), [R2DBC drivers](https://cloud.google.com/spanner/docs/use-oss-r2dbc), [REST APIs](https://cloud.google.com/spanner/docs/reference/rest) and [RPC APIs](https://cloud.google.com/spanner/docs/reference/rpc), which allow you to integrate Spanner into any application.
+このセクションでは、Spanner をアプリケーションに統合する方法を学習します。 さらに、SQL Spanner は [クライアント ライブラリ](https://cloud.google.com/spanner/docs/reference/libraries)、[JDBC ドライバー](https://cloud.google.com/spanner/docs/jdbc-drivers)、[R2DBC ドライバー](https://cloud.google.com/spanner/docs/use-oss-r2dbc)、[REST API](https://cloud.google.com/spanner/docs/reference) /rest) と [RPC API](https://cloud.google.com/spanner/docs/reference/rpc) を提供しており、Spanner を任意のアプリケーションに統合できます。
 
-In the next section, you will use the Go client library to install, authenticate and modify data in Spanner.
+次のセクションでは、Go クライアント ライブラリを使用して、Spanner でデータをインストール、認証、および変更します。
 
-## Installing the client library
+## クライアント ライブラリのインストール
 
 The [Cloud Spanner client library](https://cloud.google.com/spanner/docs/reference/libraries#create-service-account-gcloud) makes it easier to integrate with Cloud Spanner by automatically using Application Default Credentials (ADC) to find your service account credentials
 
-> Note: The starter code will have errors as you update the code. You can ignore these errors.
+[Cloud Spanner クライアント ライブラリ](https://cloud.google.com/spanner/docs/reference/libraries#create-service-account-gcloud) では、サービス アカウントの資格情報を見つけるのにアプリケーションのデフォルト認証情報 (ADC) を自動的に使用しており、Cloud Spanner との統合が容易になります。
 
-## Set up authentication
+> Note: コードを更新すると、スターター コードにエラーが発生します。 これらのエラーは無視してかまいません。
 
-The Google Cloud CLI and Google Cloud client libraries automatically detect when they are running on Google Cloud and use the runtime service account of the current Cloud Run revision. This strategy is called Application Default Credentials and enables code portability across multiple environments.
+## 認証のセットアップ
 
-However, it's best to create a dedicated identity by assigning it a user-managed service account instead of the default service account.
+Google Cloud CLI と Google Cloud クライアント ライブラリは、Google Cloud 上で実行されていることを自動的に検出し、現在の Cloud Run リビジョンのランタイム サービス アカウントを使用します。 この戦略はアプリケーションのデフォルト資格情報と呼ばれ、複数の環境間でのコードの移植性を可能にします。
 
-1. Grant the Spanner Database Admin role to the service account
+しかしながら、デフォルトのサービス アカウントではなく、ユーザー管理のサービス アカウントを割り当てて、専用の ID を作成することがベストです。
+
+1. Spanner データベース管理者ロールをサービス アカウントに付与します。
 
 ```bash
 gcloud projects add-iam-policy-binding $PROJECT_ID \
@@ -446,21 +449,21 @@ Updated IAM policy for project [cymbal-eats-6422-3462].
 [...]
 ```
 
-> With the Spanner Database Admin role, the service account can:
-> - Get/list all Cloud Spanner instances in the project.
-> - Create/list/drop databases in an instance.
-> - Grant/revoke access to databases in the project.
-> - Read from and write to all Cloud Spanner databases in the project.
+> Spanner データベース管理者ロールを使用すると、サービス アカウントは次のことができます。
+> - プロジェクト内のすべての Cloud Spanner インスタンスを取得/リストします。
+> - インスタンス内のデータベースを作成/リスト/ドロップします。
+> - プロジェクト内のデータベースへのアクセスを許可/取り消します。
+> - プロジェクト内のすべての Cloud Spanner データベースの読み取りと書き込み。
 
-## Using client libraries
+## クライアントライブラリの使用
 
-The Spanner client libraries abstract the complexities of integrating with Spanner and are available in many popular programming languages.
+Spanner クライアント ライブラリは、Spanner との統合の複雑さを抽象化し、多くの一般的なプログラミング言語で利用できます。
 
-### Create a Spanner client
+### Spanner クライアントを作成
 
-The Spanner client is a client for reading and writing data to a Cloud Spanner database. A client is safe to use concurrently, except for its Close method.
+Spanner クライアントは、Cloud Spanner データベースに対してデータを読み書きするためのクライアントです。 クライアントは、Close メソッドを除き、同時に使用しても安全です。
 
-The snippet below creates a spanner client
+以下のスニペットは Spanner クライアントの作成です
 
 **[main.go](https://github.com/GoogleCloudPlatform/cymbal-eats/blob/main/inventory-service/spanner/main.go#L47-L61)**
 
@@ -470,22 +473,22 @@ var dataClient *spanner.Client
 dataClient, err = spanner.NewClient(ctx, databaseName)
 ```
 
-You can think of a Client as a database connection: all your interactions with Cloud Spanner must go through a Client. Typically you create a Client when your application starts up, and then you re-use that client to read, write, and execute transactions. Each client uses resources in Cloud Spanner.
+クライアントはデータベースとのコネクションと考えることができ、Cloud Spanner とのやり取りはすべてクライアントを経由する必要があります。 通常、アプリケーションの起動時にクライアントを作成し、そのクライアントを再利用してトランザクションの読み取り、書き込み、実行を行います。 各クライアントは Cloud Spanner のリソースを使用します。
 
-## Modify data
+## データの変更
 
-There are multiple ways to insert, update and delete data from a Spanner database. Listed below are the available methods.
+Spanner データベースのデータを挿入、更新、削除するには、複数の方法があります。 利用可能な方法を以下に示します。
 
 - [Google Cloud Console](https://cloud.google.com/spanner/docs/modify-data)
 - [gcloud CLI](https://cloud.google.com/spanner/docs/modify-gcloud)
 - [DML](https://cloud.google.com/spanner/docs/modify-gcloud#modifying_data_using_dml)
 - [Mutations](https://cloud.google.com/spanner/docs/modify-mutation-api)
 
-In this lab, you will use mutations to modify data
+このハンズオンでは、ミューテーションを使用してデータを変更します
 
 ## Mutations in Spanner
 
-A [Mutation](https://pkg.go.dev/cloud.google.com/go/spanner/#Mutation) is a container for mutation operations. A Mutation represents a sequence of inserts, updates, and deletes that Cloud Spanner applies atomically to different rows and tables in a Cloud Spanner database.
+[Mutation](https://pkg.go.dev/cloud.google.com/go/spanner/#Mutation) は、ミューテーション操作用のコンテナです。 ミューテーションは、Cloud Spanner が Cloud Spanner データベース内のさまざまな行やテーブルにアトミックに適用する一連の挿入、更新、削除を表します。
 
 **[main.go](https://github.com/GoogleCloudPlatform/cymbal-eats/blob/main/inventory-service/spanner/main.go#L148-L153)**
 
@@ -498,18 +501,18 @@ m = append(m, spanner.Insert(
         []interface{}{uuid.New().String(), element.ItemID, element.InventoryChange, time.Now()}))
 ```
 
-The snippet of code inserts a new row into the inventory history table.
+このコードスニペットは、在庫履歴テーブルに新しい行を挿入しています。
 
-## Deploying and Testing
+## デプロイとテスト
 
-Now that Spanner is configured and you've reviewed the key code elements deploy the application to Cloud Run.
+Spanner が構成され、主要なコード要素を確認してました。プリケーションを Cloud Run にデプロイしましょう。
 
-## Deploy the application to Cloud Run
+## アプリケーションを Cloud Run にデプロイする
 
-Cloud Run can automatically build, push and deploy your code with a single command. In the following command, you'll call the `deploy` command on the `run` service, passing in variables used by the running application such as SPANNER_CONNECTION_STRING that you created earlier.
+Cloud Run では、1 つのコマンドでコードを自動的にビルド、プッシュ、デプロイできます。 次のコマンドでは、「run」サービスで「deploy」コマンドを呼び出し、前に作成した SPANNER_CONNECTION_STRING など、実行中のアプリケーションで使用される変数を渡します。
 
-1. Click Open Terminal
-2. Deploy the inventory service to Cloud Run
+1. 「ターミナルを開く」をクリックします
+2. インベントリ サービスを Cloud Run にデプロイする
 
 ```bash
 gcloud run deploy inventory-service \
@@ -528,9 +531,9 @@ Service [inventory-service] revision [inventory-service-00001-sug] has been depl
 Service URL: https://inventory-service-ilwytgcbca-uk.a.run.app
 ```
 
-> **Note**: If prompted to continue type ‘Y'
+> **Note**: 続行するように求められたら、「Y」と入力します
 
-3. Store the service URL
+3. サービス URL を保存する
 
 ```bash
 INVENTORY_SERVICE_URL=$(gcloud run services describe inventory-service \
@@ -540,11 +543,11 @@ INVENTORY_SERVICE_URL=$(gcloud run services describe inventory-service \
   --raw-output ".status.url")
 ```
 
-## Test the Cloud Run application
+## Cloud Run アプリケーションをテストする
 
-### Insert an item
+### アイテムの挿入
 
-In cloudshell, enter the following command.
+Cloud Shell で次のコマンドを入力します。
 
 ```bash
 POST_URL=$INVENTORY_SERVICE_URL/updateInventoryItem
@@ -572,9 +575,9 @@ content-length: 2
 OK
 ```
 
-## Query an item
+## アイテムをクエリする
 
-1. Query the inventory service
+1. インベントリサービスをクエリする
 
 ```
 GET_URL=$INVENTORY_SERVICE_URL/getAvailableInventory
@@ -595,11 +598,11 @@ content-length: 166
 [{"ItemID":1,"Inventory":5}]
 ```
 
-# 6. Spanner Concepts
+# 6. Spanner コンセプト
 
-Cloud Spanner queries its databases using declarative SQL statements. SQL statements indicate what the user wants without describing how the results will be obtained.
+Cloud Spanner は、宣言型 SQL ステートメントを使用してデータベースにクエリを実行します。 SQL ステートメントは、結果がどのように得られるかについては説明せずに、ユーザーが望むものを示します。
 
-1. In the terminal, enter this command to query the table for the record previously created.
+1. ターミナルで次のコマンドを入力して、以前に作成したレコードをテーブルにクエリします。
 
 ```bash
 gcloud spanner databases execute-sql $SPANNER_DB \
@@ -616,38 +619,38 @@ InventoryChange: 3
 Timestamp:
 ```
 
-## Query execution plans
+## クエリ実行プラン
 
-A [query execution plan](https://cloud.google.com/spanner/docs/query-execution-plans) is a series of steps Spanner uses to obtain results. There may be several ways to acquire the results of a particular SQL statement. Query execution plans are accessible in the console and the client libraries. To see how Spanner handles SQL queries:
+[クエリ実行プラン](https://cloud.google.com/spanner/docs/query-execution-plans) は、Spanner が結果を取得するために使用する一連のステップです。 特定の SQL ステートメントの結果を取得するには、いくつかの方法があります。 クエリ実行プランには、コンソールとクライアント ライブラリからアクセスできます。 Spanner が SQL クエリをどのように処理するかを確認するには、次の手順を実行します:
 
-1. In the console, open the Cloud Spanner instances page.
-2. Go to Cloud Spanner instances
-3. Click the name of the Cloud Spanner instance. From the databases section, select the database you want to query.
-4. Click Query.
-5. Enter the following query in the query editor
+1. コンソールで、Cloud Spanner インスタンス ページを開きます。
+2. Cloud Spanner インスタンスに移動します
+3. Cloud Spanner インスタンスの名前をクリックします。 データベース セクションから、クエリを実行するデータベースを選択します。
+4. 「クエリ」をクリックします。
+5. クエリエディタに次のクエリを入力します。
 
 ```sql
 SELECT * FROM InventoryHistory WHERE ItemID=1
 ```
 
-6. Click RUN
-7. Click EXPLANATION
+6. 「実行」をクリックします。
+7. 「説明」をクリックします。
 
-The Cloud Console displays a visual execution plan for your query.
+Cloud Console には、クエリの実行プランが視覚的に表示されます。
 
 ![](img/gig07_02-spanner-concept.png)
 
-> Conceptually, an execution plan is a tree of relational operators. Each operator reads rows from its input(s) and produces output rows. The root of the execution is returned as the result of the SQL query.
+> 概念的には、実行計画は関係演算子のツリーです。 各演算子は入力から行を読み取り、出力行を生成します。 実行のルートが SQL クエリの結果として返されます。
 
-## Query optimizer
+## クエリオプティマイザー
 
-The Cloud Spanner query optimizer compares alternative execution plans and selects the most efficient one. Over time, the query optimizer will evolve, broadening the choices in the query execution plan and improving the accuracy of the estimates that inform those choices, leading to more efficient query execution plans.
+Cloud Spanner クエリ オプティマイザーは、実行プランを比較し、最も効率的な実行プランを選択します。 時間の経過とともに、クエリ オプティマイザーは進化し、クエリ実行計画の選択肢が広がり、それらの選択肢を知らせる推定の精度が向上し、より効率的なクエリ実行計画につながります。
 
-Cloud Spanner rolls out optimizer updates as new query optimizer versions. By default, each database starts using the latest version of the optimizer no sooner than 30 days after that version has been released.
+Cloud Spanner は、オプティマイザーの更新を新しいクエリ オプティマイザー バージョンとしてロールアウトします。 デフォルトでは、各データベースはオプティマイザーの最新バージョンがリリースされてから 30 日以内にそのバージョンの使用を開始します。
 
-To see the version used when running a query in gcloud spanner, set the –query-mode flag to PROFILE
+gcloud Spanner でクエリを実行するときに使用されるバージョンを確認するには、–query-mode フラグを PROFILE に設定します。
 
-1. Enter the following command to view the optimizer version
+1. 次のコマンドを入力して、オプティマイザーのバージョンを表示します。
 
 ```bash
 gcloud spanner databases execute-sql $SPANNER_DB --instance=$SPANNER_INSTANCE \
@@ -710,13 +713,13 @@ InventoryChange: 3
 Timestamp:
 ```
 
-> The current version is set to version 3. To find the newest version check the [version history](https://cloud.google.com/spanner/docs/query-optimizer/overview#version-history)
+> 現在のバージョンはバージョン 3 に設定されています。最新バージョンを見つけるには、[バージョン履歴](https://cloud.google.com/spanner/docs/query-optimizer/overview#version-history) を確認してください。
+>
+### オプティマイザーのバージョンを更新する
 
-### Update the optimizer version
+このラボの時点での最新バージョンはバージョン 4 です。次に、クエリ オプティマイザーにバージョン 4 を使用するように Spanner テーブルを更新します。
 
-The newest version at the time of this lab is version 4. Next, you will update the Spanner Table to use version 4 for the query optimizer.
-
-2. Update the optimizer
+2. オプティマイザを更新する
 
 ```bash
 gcloud spanner databases ddl update $SPANNER_DB \
@@ -731,7 +734,7 @@ Example ouput
 Schema updating...done.
 ```
 
-3. Enter the following command to view the optimizer version update
+3. 次のコマンドを入力して、オプティマイザーのバージョン更新を表示します。
 
 ```bash
 gcloud spanner databases execute-sql $SPANNER_DB --instance=$SPANNER_INSTANCE \
@@ -749,19 +752,19 @@ OPTIMIZER_VERSION: 4
 [...]
 ```
 
-> The `OPTIMIZER_VERSION` has been updated to version 4
+> `OPTIMIZER_VERSION` がバージョン 4 に更新されました
 
-### Visualize query optimizer version in Metrics Explorer
+### Metrics Explorer でクエリ オプティマイザーのバージョンを視覚化する
 
-You can use Metrics Explorer in Cloud Console to visualize the **Count of queries** for your database instance. You can see which optimizer version is being used in each database.
+Cloud コンソール の Metrics Explorer を使用して、データベース インスタンスの **クエリ数** を視覚化できます。 各データベースでどのオプティマイザのバージョンが使用されているかを確認できます。
 
-1. Navigate to the Monitoring in the Cloud Console and select [Metrics Explorer](https://cloud.google.com/monitoring/charts/metrics-explorer#find-me) in the left menu.
+1. Cloud コンソール のモニタリングに移動し、左側のメニューで [Metrics Explorer](https://cloud.google.com/monitoring/charts/metrics-explorer#find-me) を選択します。
 
-2. In the **Resource type** field, select Cloud Spanner Instance.
+2. [**リソース タイプ**] フィールドで、[Cloud Spanner インスタンス] を選択します。
 
-3. In the **Metric** field, select Count of queries and Apply.
+3. [**メトリック**] フィールドで、[クエリ数] を選択して [適用] を選択します。
 
-4. In the **Group By** field, select database, optimizer_version, and status.
+4. [**グループ化**] フィールドで、データベース、optimizer_version、ステータスを選択します。
 
 ![](img/gig07_02-metrics-explorer.png)
 
