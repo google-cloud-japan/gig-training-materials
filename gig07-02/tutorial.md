@@ -116,7 +116,7 @@ gcloud services enable compute.googleapis.com sqladmin.googleapis.com \
 
 このコマンドは完了するまでに数分かかる場合がありますが、最終的には次のような成功メッセージが表示されるはずです。:
 
-```
+```terminal
 Operation "operations/acf.p2-327036483151-73d90d00-47ee-447a-b600-a6badf0eceae" finished successfully.
 ```
 
@@ -159,7 +159,7 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
 ## 4. **Cloud SQL のセットアップ**
 `gcloud sql instances create` コマンドを実行して、Cloud SQL インスタンスを作成します。
 
-- **-database-version**: データベースエンジンのタイプとバージョンの指定。指定されない場合は API のデフォルト値が使用されます。詳しくは gcloud データベース バージョンに関する [ドキュメント] (https://cloud.google.com/sql/docs/db-versions?hl=ja) に記載されている現在利用可能なバージョンをご確認下さい。
+- **-database-version**: データベースエンジンのタイプとバージョンの指定。指定されない場合は API のデフォルト値が使用されます。詳しくは gcloud データベース バージョンに関する [ドキュメント](https://cloud.google.com/sql/docs/db-versions?hl=ja) に記載されている現在利用可能なバージョンをご確認下さい。
 - **-cpu**: インスタンスに必要とされる CPU コアの数
 - **-memory**: インスタンスに必要とされるメモリ容量 (例: 3072MB, 9GB)
 - **–region**: インスタンスを配置するリージョン (例: us-central1, asia-northeast1, us-east1)
@@ -309,7 +309,7 @@ gcloud run deploy helloworld \
 
 プロンプトが表示されたら、「**y**」と「**Enter**」を押して続行することを確認します:
 
-```bash
+```terminal
 Do you want to continue (Y/n)? y
 ```
 
@@ -415,7 +415,7 @@ gcloud spanner instances create $SPANNER_INSTANCE --config=regional-${REGION} \
 --description="Cymbal Menu Inventory" --nodes=1
 ```
 Example Output
-```
+```terminal
 Creating instance...done.
 ```
 
@@ -426,7 +426,7 @@ gcloud spanner instances list
 ```
 
 Example output
-```
+```terminal
 NAME: inventory-instance
 DISPLAY_NAME: Cymbal Menu Inventory
 CONFIG: regional-us-east1
@@ -455,7 +455,7 @@ gcloud spanner databases create $SPANNER_DB \
 
 Example output
 
-```
+```terminal
 Creating database...done.
 ```
 
@@ -470,7 +470,7 @@ gcloud spanner databases describe $SPANNER_DB \
 
 Example output
 
-```
+```terminal
 createTime: '2022-04-22T15:11:33.559300Z'
 databaseDialect: GOOGLE_STANDARD_SQL
 earliestVersionTime: '2022-04-22T15:11:33.559300Z'
@@ -492,7 +492,7 @@ gcloud spanner databases ddl describe $SPANNER_DB \
 
 Example output
 
-```
+```terminal
 CREATE TABLE InventoryHistory (
   ItemRowID STRING(36) NOT NULL,
   ItemID INT64 NOT NULL,
@@ -532,7 +532,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ```
 
 Example output
-```
+```terminal
 Updated IAM policy for project [cymbal-eats-6422-3462].
 [...]
 ```
@@ -614,7 +614,7 @@ gcloud run deploy inventory-service \
 
 Example output
 
-```
+```terminal
 Service [inventory-service] revision [inventory-service-00001-sug] has been deployed and is serving 100 percent of traffic.
 Service URL: https://inventory-service-ilwytgcbca-uk.a.run.app
 ```
@@ -651,7 +651,7 @@ curl -i -X POST ${POST_URL} \
 
 Example output
 
-```
+```terminal
 HTTP/2 200
 access-control-allow-origin: *
 content-type: application/json
@@ -667,14 +667,14 @@ OK
 
 1. インベントリサービスをクエリする
 
-```
+```bash
 GET_URL=$INVENTORY_SERVICE_URL/getAvailableInventory
 curl -i ${GET_URL}
 ```
 
 Example response
 
-```
+```terminal
 HTTP/2 200
 access-control-allow-origin: *
 content-type: text/plain; charset=utf-8
@@ -700,7 +700,7 @@ gcloud spanner databases execute-sql $SPANNER_DB \
 
 Example output
 
-```
+```terminal
 ItemRowID: 1
 ItemID: 1
 InventoryChange: 3
@@ -714,8 +714,8 @@ Timestamp:
 1. コンソールで、Cloud Spanner インスタンス ページを開きます。
 2. Cloud Spanner インスタンスに移動します
 3. Cloud Spanner インスタンスの名前をクリックします。 データベース セクションから、クエリを実行するデータベースを選択します。
-4. 「クエリ」をクリックします。
-5. クエリエディタに次のクエリを入力します。
+4. 「Spanner Studio」をクリックします。
+5. Editor 1 のタブに切り替え、次のクエリを入力します。
 
 ```sql
 SELECT * FROM InventoryHistory WHERE ItemID=1
@@ -747,12 +747,12 @@ gcloud spanner databases execute-sql $SPANNER_DB --instance=$SPANNER_INSTANCE \
 
 Example output
 
-```
+```terminal
 TOTAL_ELAPSED_TIME: 6.18 msecs
 CPU_TIME: 5.17 msecs
 ROWS_RETURNED: 1
 ROWS_SCANNED: 1
-OPTIMIZER_VERSION: 3
+OPTIMIZER_VERSION: 5
  RELATIONAL Distributed Union
  (1 execution, 0.11 msecs total latency)
  subquery_cluster_node: 1
@@ -801,24 +801,23 @@ InventoryChange: 3
 Timestamp:
 ```
 
-> 現在のバージョンはバージョン 3 に設定されています。最新バージョンを見つけるには、[バージョン履歴](https://cloud.google.com/spanner/docs/query-optimizer/overview#version-history) を確認してください。
+> 現在のバージョンはバージョン 5 に設定されています。最新バージョンを見つけるには、[バージョン履歴](https://cloud.google.com/spanner/docs/query-optimizer/overview#version-history) を確認してください。
 
 #### オプティマイザーのバージョンを更新する
 
-このラボの時点での最新バージョンはバージョン 4 です。次に、クエリ オプティマイザーにバージョン 4 を使用するように Spanner テーブルを更新します。
+このラボの時点での最新バージョンはバージョン 6 です。次に、クエリ オプティマイザーにバージョン 6 を使用するように Spanner テーブルを更新します。
 
 2. オプティマイザを更新する
 
 ```bash
 gcloud spanner databases ddl update $SPANNER_DB \
 --instance=$SPANNER_INSTANCE \
---ddl='ALTER DATABASE InventoryHistory
-SET OPTIONS (optimizer_version = 4)'
+--ddl='ALTER DATABASE InventoryHistory SET OPTIONS (optimizer_version = 6)'
 ```
 
 Example ouput
 
-```
+```terminal
 Schema updating...done.
 ```
 
@@ -831,7 +830,7 @@ gcloud spanner databases execute-sql $SPANNER_DB --instance=$SPANNER_INSTANCE \
 
 Example output
 
-```
+```terminal
 TOTAL_ELAPSED_TIME: 8.57 msecs
 CPU_TIME: 8.54 msecs
 ROWS_RETURNED: 1
@@ -840,7 +839,7 @@ OPTIMIZER_VERSION: 4
 [...]
 ```
 
-> `OPTIMIZER_VERSION` がバージョン 4 に更新されました
+> `OPTIMIZER_VERSION` がバージョン 6 に更新されました
 
 #### Metrics Explorer でクエリ オプティマイザーのバージョンを視覚化する
 
@@ -848,11 +847,11 @@ Cloud コンソール の Metrics Explorer を使用して、データベース 
 
 1. Cloud コンソール のモニタリングに移動し、左側のメニューで [Metrics Explorer](https://cloud.google.com/monitoring/charts/metrics-explorer#find-me) を選択します。
 
-2. [**リソース タイプ**] フィールドで、[Cloud Spanner インスタンス] を選択します。
+2. [**指標**] フィールドを開き、[有効なリソース]列から[Cloud Spanner Instance] を選択します。
 
-3. [**メトリック**] フィールドで、[クエリ数] を選択して [適用] を選択します。
+3. [**有効な指標カテゴリ**]列から[Query_count]、有効な指標列から[Count of queries]を選択して [適用] を選択します。
 
-4. [**グループ化**] フィールドで、データベース、optimizer_version、ステータスを選択します。
+4. [**グループ化**] フィールドで、database、optimizer_version、statusを選択します。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-metrics-explorer.png)
 
@@ -900,7 +899,7 @@ gcloud firestore databases create --location=$REGION
 
 Example ouput
 
-```
+```terminal
 Success! Selected Google Cloud Firestore Native database for cymbal-eats-6422-3462
 ```
 
@@ -922,7 +921,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 Example output
 
-```
+```terminal
 Updated IAM policy for project [cymbal-eats-6422-3462].
 ```
 
@@ -984,7 +983,7 @@ curl -sL https://firebase.tools | upgrade=true bash
 
 Example output
 
-```
+```terminal
 -- Checking for existing firebase-tools on PATH...
 Your machine already has firebase-tools@10.7.0 installed. Nothing to do.
 -- All done!
@@ -998,7 +997,7 @@ firebase deploy
 
 Example Output
 
-```
+```terminal
 === Deploying to 'cymbal-eats-6422-3462'...
 
 i  deploying firestore
@@ -1114,7 +1113,7 @@ gcloud run deploy order-service \
 
 Example output
 
-```
+```terminal
 [...]
 Done.
 Service [order-service] revision [order-service-00001-qot] has been deployed and is serving 100 percent of traffic.
@@ -1157,7 +1156,7 @@ curl --request POST $ORDER_SERVICE_URL/order \
 
 Example output
 
-```
+```terminal
 {"orderNumber":46429}
 ```
 
@@ -1198,7 +1197,7 @@ curl --location -g --request PATCH $ORDER_SERVICE_URL/order/${ORDER_NUMBER} \
 
 Example output
 
-```
+```terminal
 {"status":"success"}
 ```
 
