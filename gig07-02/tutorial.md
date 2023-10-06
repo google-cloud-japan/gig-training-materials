@@ -164,7 +164,7 @@ gcloud sql instances create quickstart-instance \
   --database-version=POSTGRES_14 \
   --cpu=1 \
   --memory=4GB \
-  --region=us-central1 \
+  --region=asia-northeast1 \
   --database-flags=cloudsql.iam_authentication=on
 
 ```
@@ -290,9 +290,9 @@ EOF
 
 ```bash
 gcloud run deploy helloworld \
-  --region=us-central1 \
+  --region=asia-northeast1 \
   --source=. \
-  --set-env-vars INSTANCE_CONNECTION_NAME="${GOOGLE_CLOUD_PROJECT}:us-central1:quickstart-instance" \
+  --set-env-vars INSTANCE_CONNECTION_NAME="${GOOGLE_CLOUD_PROJECT}:asia-northeast1:quickstart-instance" \
   --set-env-vars DB_NAME="quickstart_db" \
   --set-env-vars DB_USER="quickstart-service-account@${GOOGLE_CLOUD_PROJECT}.iam" \
   --service-account="quickstart-service-account@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
