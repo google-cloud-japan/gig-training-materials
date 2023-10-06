@@ -237,7 +237,8 @@ Cloud Shell で次のコマンドを実行します:
 cat ./index.mjs
 ```
 
-`index.mjs`
+[**index.mjs**](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/index.mjs)
+
 ```javascript
 import express from 'express';
 import pg from 'pg';
