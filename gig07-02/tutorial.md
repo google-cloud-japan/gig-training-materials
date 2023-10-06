@@ -70,7 +70,7 @@ teachme tutorial.md
 
 ---
 
-# Cloud Run 上の Node.js アプリケーションを Cloud SQL for PostgreSQL データベースに接続する
+## Cloud Run 上の Node.js アプリケーションを Cloud SQL for PostgreSQL データベースに接続する
 
 ## 1. **概要**
 
