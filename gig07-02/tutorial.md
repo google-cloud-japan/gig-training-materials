@@ -224,7 +224,7 @@ npm install pg
 npm install express
 ```
 
-6. リケーション コードを含む `index.mjs` ファイルを作成します。 このコードでは次のことが可能です:
+6. アプリケーション コードを含む `index.mjs` ファイルを確認します。 このコードでは次のことが可能です:
 
 - HTTPリクエストを受け入れる
 - データベースに接続する
@@ -234,7 +234,11 @@ npm install express
 Cloud Shell で次のコマンドを実行します:
 
 ```bash
-cat > index.mjs << "EOF"
+cat ./index.mjs
+```
+
+`index.mjs`
+```javascript
 import express from 'express';
 import pg from 'pg';
 import {Connector} from '@google-cloud/cloud-sql-connector';
@@ -273,7 +277,6 @@ app.listen(port, async () => {
   console.log(`helloworld: listening on port ${port}`);
 });
 
-EOF
 ```
 
 このコードは、PORT 環境変数で定義されたポートをリッスンする基本的な Web サーバーを作成します。 これで、アプリケーションをデプロイする準備が整いました。
