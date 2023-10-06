@@ -12,11 +12,17 @@
 
 #### GCP のプロジェクト ID を環境変数に設定
 
-環境変数 `GOOGLE_CLOUD_PROJECT` に GCP プロジェクト ID を設定します。[GOOGLE_CLOUD_PROJECT_ID] 部分にご使用になられる Google Cloud プロジェクトの ID を入力してください。
-例: `export PROJECT_ID=gig7-2`
+環境変数 `GOOGLE_CLOUD_PROJECT` に GCP プロジェクト ID を設定します。下のプルダウンメニューから、ご使用になられる Google Cloud プロジェクトを選択して下さい。
+
+<walkthrough-project-setup></walkthrough-project-setup>
 
 ```bash
-export GOOGLE_CLOUD_PROJECT=[GOOGLE_CLOUD_PROJECT_ID]
+export GOOGLE_CLOUD_PROJECT=<walkthrough-project-id/>
+```
+※ もし上のプルダウンメニューが正しく動作しない場合、以下のコマンドを実行して下さい。 `[PROJECT_ID]` はご自身のプロジェクト ID に置き換えてください。
+
+```bash
+export GOOGLE_CLOUD_PROJECT=[PROJECT_ID]
 ```
 
 #### CLI（gcloud コマンド）から利用する GCP のデフォルトプロジェクトを設定
@@ -78,7 +84,7 @@ teachme tutorial.md
 - Node.js アプリケーションを Cloud Run にデプロイします。
 - Cloud SQL Node.js コネクタライブラリを使ってアプリケーションをデータベースに接続します。
 
-### 前提条件
+### **前提条件**
 
 このハンズオンは、Cloud Console および Cloud Shell 環境の理解を前提としています。
 
@@ -114,7 +120,7 @@ gcloud services enable compute.googleapis.com sqladmin.googleapis.com \
 Operation "operations/acf.p2-327036483151-73d90d00-47ee-447a-b600-a6badf0eceae" finished successfully.
 ```
 
-## 3. サービスアカウントのセットアップ
+## 3. **サービスアカウントのセットアップ**
 
 Cloud Run が使用するサービスアカウントを作成し、Cloud SQL への正しいアクセス権を割り当てます。
 
@@ -125,7 +131,7 @@ gcloud iam service-accounts create quickstart-service-account \
   --display-name="Quickstart Service Account"
 ```
 
-2. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud SQL クライアントの権限を割り当てます。
+1. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud SQL クライアントの権限を割り当てます。
 
 ```bash
 gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
@@ -150,7 +156,7 @@ gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
   --role="roles/logging.logWriter"
 ```
 
-## 4. Cloud SQL のセットアップ
+## 4. **Cloud SQL のセットアップ**
 `gcloud sql instances create` コマンドを実行して、Cloud SQL インスタンスを作成します。
 
 - **-database-version**: データベースエンジンのタイプとバージョンの指定。指定されない場合は API のデフォルト値が使用されます。詳しくは gcloud データベース バージョンに関する [ドキュメント] (https://cloud.google.com/sql/docs/db-versions?hl=ja) に記載されている現在利用可能なバージョンをご確認下さい。
@@ -166,7 +172,6 @@ gcloud sql instances create quickstart-instance \
   --memory=4GB \
   --region=asia-northeast1 \
   --database-flags=cloudsql.iam_authentication=on
-
 ```
 
 このコマンドの完了には数分掛かります。
@@ -186,14 +191,13 @@ gcloud sql users create quickstart-service-account@${GOOGLE_CLOUD_PROJECT}.iam \
   --type=cloud_iam_service_account
 ```
 
-## 5. アプリケーションの準備
+## 5. **アプリケーションの準備**
 
-HTTP リクエストに応答する Node.js アプリケーションを準備します。
+HTTP リクエストに応答する Node.js アプリケーションを準備します。アプリケーションは `gig07-02/helloworld` というディレクトリにあります。
 
-1. Cloud Shell で「helloworld」という名前の新しいディレクトリを作成し、そのディレクトリに移動します:
+1. Cloud Shell で `helloworld` ディレクトリに移動します:
 
 ```bash
-mkdir helloworld
 cd helloworld
 ```
 
@@ -237,12 +241,8 @@ Cloud Shell で次のコマンドを実行します:
 cat ./index.mjs
 ```
 
-<<<<<<< HEAD
 [**index.mjs**](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/index.mjs)
 
-=======
-`index.mjs`
->>>>>>> parent of b6a428f (translated step 1-6)
 ```javascript
 import express from 'express';
 import pg from 'pg';
@@ -286,7 +286,7 @@ app.listen(port, async () => {
 
 このコードは、PORT 環境変数で定義されたポートをリッスンする基本的な Web サーバーを作成します。 これで、アプリケーションをデプロイする準備が整いました。
 
-## 6. Cloud Run アプリケーションのデプロイ
+## 6. **Cloud Run アプリケーションのデプロイ**
 
 以下のコマンドを実行して、アプリケーションを Cloud Run にデプロイします。コマンドのオプションはそれぞれ以下の意味を持ちます:
 
@@ -317,17 +317,17 @@ Do you want to continue (Y/n)? y
 
 URL に移動して、アプリケーションの動作を確認します。 URL にアクセスするか、ページを更新するたびに、最近 5 件の訪問が JSON 形式で返されることがわかります。
 
-## 7. おめでとうございます!!
+## 7. **おめでとうございます!**
 
 Cloud SQL 上で実行されている PostgreSQL データベースに接続できる Node.js アプリケーションを Cloud Run にデプロイしました。
 
-### このセクションでカバーした内容
+### **このセクションでカバーした内容**
 - Cloud SQL for PostgreSQL データベースの作成
 - Cloud Run への Node.js アプリケーションのデプロイ
 - Cloud SQL Node.js コネクタを使用したアプリケーションの Cloud SQL への接続
 
-### クリーンアップ
-このチュートリアルで使用するリソースに対して料金が発生しないようにするには、リソースを含むプロジェクトを削除するか、プロジェクトを保持して個々のリソースを削除します。プロジェクト全体を削除したい場合は、次のコマンドを実行できます:
+### **クリーンアップ**
+このチュートリアルで使用するリソースに対して料金が発生しないようにするには、リソースを含むプロジェクトを削除するか、プロジェクトを保持して個々のリソースを削除します。プロジェクト全体を削除したい場合は、次のコマンドを実行できます。なお、このラボは後半に続きます。後半に進む方はここではプロジェクトの削除は行わず、後半のラボ終了時に削除頂いても構いません。
 
 ```bash
 gcloud projects delete ${GOOGLE_CLOUD_PROJECT}
