@@ -326,6 +326,7 @@ gcloud projects delete ${GOOGLE_CLOUD_PROJECT}
 ```
 おつかれさまでした。
 
+
 ---
 
 
@@ -344,6 +345,7 @@ gcloud projects delete ${GOOGLE_CLOUD_PROJECT}
 - Cloud Firestore
   - Cloud Firestore マネージドサービスを有効にする
   - アプリをデプロイして Firestore に接続する
+
 
 # 3. セットアップと要件
 
@@ -391,6 +393,7 @@ git clone https://github.com/GoogleCloudPlatform/cymbal-eats.git
 ```bash
 cd cymbal-eats/inventory-service/spanner
 ```
+
 
 # 4. Cloud Spanner インスタンスの作成と設定
 
@@ -493,6 +496,7 @@ CREATE TABLE InventoryHistory (
 
 > **Note**: データベースには 4 つの列があります。 ItemRowID が主キーです。
 > [Spanner 概要コンソール](https://console.cloud.google.com/spanner/instances/inventory-instance/details/databases) で詳細を確認することもできます。
+
 
 # 5. Spanner インテグレーション
 
@@ -677,6 +681,7 @@ content-length: 166
 [{"ItemID":1,"Inventory":5}]
 ```
 
+
 # 6. Spanner コンセプト
 
 Cloud Spanner は、宣言型 SQL ステートメントを使用してデータベースにクエリを実行します。 SQL ステートメントは、結果がどのように得られるかについては説明せずに、ユーザーが望むものを示します。
@@ -847,41 +852,43 @@ Cloud コンソール の Metrics Explorer を使用して、データベース 
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-metrics-explorer.png)
 
-# 7. Create and Configure a Firestore Database
 
-Firestore is a NoSQL document database built for automatic scaling, high performance, and ease of application development. While the Firestore interface has many of the same features as traditional databases, a NoSQL database differs from them in describing relationships between data objects.
+# 7. Firestore の作成と構成
 
-The following task will guide you through creating an ordering service Cloud Run application backed by Firestore. The ordering service will call the inventory service created in the previous section to query the Spanner database before starting the order. This service will ensure sufficient inventory exists and the order can be filled.
+Firestore は、自動スケーリング、高パフォーマンス、アプリケーション開発の容易さのために構築された NoSQL ドキュメント データベースです。 Firestore インターフェースには従来のデータベースと同じ機能が多くありますが、NoSQL データベースはデータ オブジェクト間の関係を記述する点で異なります。
+
+以降のタスクでは、Firestore を利用した、注文サービス Cloud Run アプリケーションを作成する手順を説明します。 注文サービスは、注文を開始する前に、前のセクションで作成した在庫サービスを呼び出して、Spanner データベースにクエリを実行します。 このサービスにより、十分な在庫が存在し、注文に対応できることが保証されます。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore.png)
 
-# 8. Firestore Concept
 
-## Data Model
+# 8. Firestore コンセプト
 
-A Firestore database is made up of collections and documents.
+## データモデル
+
+Firestore データベースは、コレクションとドキュメントで構成されます。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore02.png)
 
-### Documents
+### ドキュメント
 
-Each document contains a set of key-value pairs. Firestore is optimized for storing large collections of small documents.
+各ドキュメントには、一連のキーと値のペアが含まれています。 Firestore は、小さなドキュメントの大規模なコレクションを保存するために最適化されています。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore03.png)
 
-> In the example above, the order id document contains four key-value pairs. The key orderItems include an array of key-value pairs.
+> 上の例では、注文 ID ドキュメントに 4 つのキーと値のペアが含まれています。 キー orderItems には、キーと値のペアの配列が含まれます。
 
-### Collections
+### コレクション
 
-You must store all documents in collections. Documents can contain subcollections and nested objects, including primitive fields like strings or complex objects like lists.
+すべてのドキュメントをコレクションに保存する必要があります。 ドキュメントには、文字列のようなプリミティブなフィールドやリストのような複雑なオブジェクトを含む、サブコレクションとネストされたオブジェクトを含めることができます。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore04.png)
 
-> The order id document is stored in the orders collection in the example above.
+> 上記の例では、注文 ID ドキュメントが注文コレクションに保存されています。
 
-## Create a Firestore database
+## Firestore データベースの作成
 
-1. Create the Firestore database
+1. Firestore データベースを作成する
 
 ```bash
 gcloud firestore databases create --location=$REGION
@@ -893,15 +900,16 @@ Example ouput
 Success! Selected Google Cloud Firestore Native database for cymbal-eats-6422-3462
 ```
 
-> The new Firestore database you created is currently empty. The new database also has a default set of security rules that allow anyone to perform read operations and prevent anyone from writing to the database.
+> 作成した新しい Firestore データベースは現在空です。 新しいデータベースには、誰でも読み取り操作を実行でき、データベースへの書き込みを禁止するデフォルトのセキュリティ ルール セットもあります。
 
-# 9. Integrating Firestore into your application
 
-In this section, you will update the service account, add Firestore access service accounts, review and deploy the Firestore security rules and review how data is modified in Firestore.
+# 9. Firestore をアプリケーションに統合する
 
-## Set up authentication
+このセクションでは、サービス アカウントの更新、Firestore アクセス サービス アカウントの追加、Firestore セキュリティ ルールの確認と展開、Firestore でのデータの変更方法の確認を行います。
 
-1. Grant the Datastore user role to the service account
+## 認証を設定する
+
+1. データストア ユーザー ロールをサービス アカウントに付与する
 
 ```bash
 gcloud projects add-iam-policy-binding $PROJECT_ID \
@@ -915,19 +923,19 @@ Example output
 Updated IAM policy for project [cymbal-eats-6422-3462].
 ```
 
-> The Datastore user role grants read/write access to data in a Firestore database.
+> Datastore ユーザー ロールは、Firestore データベース内のデータへの読み取り/書き込みアクセスを許可します。
 
-### Firestore Security Rules
+### Firestore セキュリティルール
 
-Security rules provide access control and data validation expressive yet straightforward format.
+セキュリティ ルールは、アクセス制御とデータ検証を表現力豊かでわかりやすい形式で提供します。
 
-1. Navigate to the order-service/starter-code directory
+1. order-service/starter-code ディレクトリに移動します。
 
 ```bash
 cd ~/cymbal-eats/order-service
 ```
 
-2. Open the firestore.rules file in cloud editor
+2. クラウドエディターで `firestore.rules` ファイルを開きます。
 
 ```bash
 cat firestore.rules
@@ -949,15 +957,15 @@ service cloud.firestore {
 }
 ```
 
-> The firestore.rules file contains rules to allow all read operations and denies all write operations for all tables in the Firestore database. For more information on firestore rules, review [Getting started with security rules](https://cloud.google.com/firestore/docs/security/get-started).
+> firestore.rules ファイルには、Firestore データベース内のすべてのテーブルに対するすべての読み取り操作を許可し、すべての書き込み操作を拒否するルールが含まれています。 Firestore ルールの詳細については、[セキュリティ ルールの概要](https://cloud.google.com/firestore/docs/security/get-started) を参照してください。
 
-**Warning**: It is best practice to limit access to Firestore storage. For the purpose of this lab, all reads are allowed. This is not an advised production configuration.
+**警告**: Firestore ストレージへのアクセスを制限することがベスト プラクティスです。 このラボでは、すべての読み取りが許可されています。 これは推奨される運用構成ではありません。
 
-## Enable Firestore Managed Services
+## Firestore マネージド サービスを有効にする
 
-1. Click Open Terminal
+1. 「ターミナルを開く」をクリックします
 
-2. Create .firebaserc file with the current Project ID. The settings for deploy targets are stored in the .firebaserc file in your project directory.
+2. 現在のプロジェクト ID を使用して .firebaserc ファイルを作成します。 デプロイ ターゲットの設定は、プロジェクト ディレクトリの .firebaserc ファイルに保存されます。
 
 **[firebaserc.tmpl](https://github.com/GoogleCloudPlatform/cymbal-eats/blob/main/order-service/firebaserc.tmpl)**
 
@@ -965,7 +973,7 @@ service cloud.firestore {
 sed "s/PROJECT_ID/$PROJECT_ID/g" firebaserc.tmpl > .firebaserc
 ```
 
-2. Download firebase binary
+2. Firebase バイナリをダウンロードする
 
 ```bash
 curl -sL https://firebase.tools | upgrade=true bash
@@ -979,7 +987,7 @@ Your machine already has firebase-tools@10.7.0 installed. Nothing to do.
 -- All done!
 ```
 
-3. Deploy Firestore rules.
+3. Firestore ルールをデプロイする
 
 ```bash
 firebase deploy
@@ -1001,26 +1009,27 @@ i  firestore: uploading rules firestore.rules...
 Project Console: https://console.firebase.google.com/project/cymbal-eats-6422-3462/overview
 ```
 
-> Updates to Cloud Firestore Security Rules can take up to a minute to affect new queries and listeners. However, it can take up to 10 minutes to fully propagate the changes and affect any active listeners.
+> Cloud Firestore セキュリティ ルールの更新が新しいクエリとリスナーに影響を与えるまでに最大 1 分かかる場合があります。 ただし、変更が完全に反映され、アクティブなリスナーに影響を与えるまでに最大 10 分かかる場合があります。
 
-## Modify data
+## データを変更する
 
-Collections and documents are created implicitly in Firestore. Simply assign data to a document within a collection. If either the collection or document does not exist, Firestore creates it.
+コレクションとドキュメントは Firestore で暗黙的に作成されます。 コレクション内のドキュメントにデータを割り当てるだけです。 コレクションまたはドキュメントが存在しない場合は、Firestore によって作成されます。
 
-### Add data to firestore
+### Firestore にデータを追加する
 
-There are several ways to write data to Cloud Firestore:
+Cloud Firestore にデータを書き込む方法はいくつかあります:
 
-- Set the data of a document within a collection, explicitly specifying a document identifier.
-- Add a new document to a collection. In this case, Cloud Firestore automatically generates the document identifier.
-- Create an empty document with an automatically generated identifier, and assign data to it later.
+- 文書識別子を明示的に指定して、コレクション内の文書のデータを設定します
+- 新しいドキュメントをコレクションに追加します。 この場合、Cloud Firestore はドキュメント識別子を自動的に生成します
+- 自動生成された識別子を使用して空のドキュメントを作成し、後でそれにデータを割り当てます
 
-The next section will guide you through creating a document using the set method.
+次のセクションでは、set メソッドを使用してドキュメントを作成する方法を説明します。
 
-### Set a document
-Use the `set()` method to create a document. With the `set()` method, you must specify an ID for the document to create.
+### ドキュメントをセットする
 
-Take a look at the code snippet below.
+`set()` メソッドを使用してドキュメントを作成します。 `set()` メソッドでは、作成するドキュメントの ID を指定する必要があります。
+
+以下のコードスニペットを見てください。
 
 **[index.js](https://github.com/GoogleCloudPlatform/cymbal-eats/tree/main/order-service/index.js#L89-L102)**
 
@@ -1038,15 +1047,15 @@ await orderDoc.set({
   });
 ```
 
-This code will create a document specifying a user-generated document id 123. To have Firestore generate an ID on your behalf, use the `add()` or `create()` method.
+このコードは、ユーザーが生成したドキュメント ID 123 を指定してドキュメントを作成します。ユーザーに代わって Firestore に ID を生成させるには、`add()` または `create()` メソッドを使用します。
 
-> When using `set()` if the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data.
+> `set()` を使用すると、ドキュメントが存在しない場合にドキュメントが作成されます。 ドキュメントが存在する場合、その内容は新しく提供されたデータで上書きされます。
 
-### Update a documents
+### ドキュメントを更新する
 
-The update method `update()` allows you to update some document fields without overwriting the entire document.
+更新メソッド `update()` を使用すると、ドキュメント全体を上書きせずに、一部のドキュメント フィールドを更新できます。
 
-In the snippet below, the code updates order 123
+以下のスニペットでは、コードは順序 123 を更新します。
 
 **[index.js](https://github.com/GoogleCloudPlatform/cymbal-eats/tree/main/order-service/index.js#L62-L63)**
 
@@ -1055,11 +1064,11 @@ const orderDoc = db.doc(`orders/123`);
 await orderDoc.update(name: "Anna");
 ```
 
-### Delete a documents
+### ドキュメントを削除する
 
-In Firestore, you can delete collections, documents or specific fields from a document. To delete a document, use the `delete()` method.
+Firestore では、ドキュメントからコレクション、ドキュメント、または特定のフィールドを削除できます。 ドキュメントを削除するには、`delete()` メソッドを使用します。
 
-The snippet below deletes order 123.
+以下のスニペットは注文 123 を削除します。
 
 **[index.js](https://github.com/GoogleCloudPlatform/cymbal-eats/tree/main/order-service/index.js#L50-L51)**
 
@@ -1068,15 +1077,15 @@ const orderDoc = db.doc(`orders/123`);
 await orderDoc.delete();
 ```
 
-> **Note**: Deleting a document does not delete its subcollections!
+> **注意**: ドキュメントを削除しても、そのサブコレクションは削除されません。
 
-# 10. Deploying and Testing
+# 10. デプロイとテスト
 
-In this section, you will deploy the application to Cloud Run and test the create, update and delete methods.
+このセクションでは、アプリケーションを Cloud Run にデプロイし、作成、更新、削除メソッドをテストします。
 
-## Deploy the application to Cloud Run
+## アプリケーションを Cloud Run にデプロイする
 
-1. Store the URL in the variable INVENTORY_SERVICE_URL to integrate with Inventory Service
+1. URL を変数 INVENTORY_SERVICE_URL に保存して、Inventory Service と統合します
 
 ```bash
 INVENTORY_SERVICE_URL=$(gcloud run services describe inventory-service \
@@ -1085,9 +1094,9 @@ INVENTORY_SERVICE_URL=$(gcloud run services describe inventory-service \
  --raw-output ".status.url")
 ```
 
-> The order service needs to communicate with the inventory service to verify inventory exists, and orders can be fulfilled. In this step, you store the inventory service URL to a variable that will be passed to the order service as an environment variable.
+> 注文サービスは在庫サービスと通信して、在庫が存在し、注文が履行できることを確認する必要があります。 このステップでは、在庫サービスの URL を変数に保存し、この変数が環境変数として注文サービスに渡されます。
 
-2. Deploy the order service
+2. 注文サービスをデプロイする
 
 ```bash
 gcloud run deploy order-service \
@@ -1109,11 +1118,11 @@ Service [order-service] revision [order-service-00001-qot] has been deployed and
 Service URL: https://order-service-3jbm3exegq-uk.a.run.app
 ```
 
-## Test the Cloud Run application
+## Cloud Run アプリケーションをテストする
 
-### Create a document
+### ドキュメントを作成する
 
-1. Store the order service application's URL into a variable for testing
+1. 注文サービス アプリケーションの URL をテスト用の変数に保存します
 
 ```bash
 ORDER_SERVICE_URL=$(gcloud run services describe order-service \
@@ -1123,7 +1132,7 @@ ORDER_SERVICE_URL=$(gcloud run services describe order-service \
   --raw-output ".status.url")
 ```
 
-2. Build an order request and post a new order to the Firestore database
+2. 注文リクエストを作成し、新しい注文を Firestore データベースにポストします
 
 ```bash
 curl --request POST $ORDER_SERVICE_URL/order \
@@ -1149,27 +1158,27 @@ Example output
 {"orderNumber":46429}
 ```
 
-### Save the Order Number for later use
+### 後で使用できるように注文番号を保存します
 
 ```bash
 export ORDER_NUMBER=<value_from_output>
 ```
 
-### View results
+### 結果を見る
 
-View the results in Firestore
+Firestore で結果を表示する
 
-1. Navigate to the [Firestore console](https://console.cloud.google.com/firestore)
+1. [Firestore コンソール](https://console.cloud.google.com/firestore) に移動します。
 
-2. Click on Data
+2. 「データ」をクリックします。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore05.png)
 
-## Update a document
+## ドキュメントの更新
 
-The order submitted didn't include the quantity.
+送信された注文には数量が含まれていませんでした。
 
-1. Update the record and add a quantity key-value pair
+1. レコードを更新し、数量のキーと値のペアを追加します。
 
 ```bash
 curl --location -g --request PATCH $ORDER_SERVICE_URL/order/${ORDER_NUMBER} \
@@ -1190,12 +1199,13 @@ Example output
 {"status":"success"}
 ```
 
-### View results
-View the results in Firestore
+### 結果を見る
 
-1. Navigate to the [Firestore console](https://console.cloud.google.com/firestore)
+Firestore で結果を表示する
 
-2. Click on Data
+1. [Firestore コンソール](https://console.cloud.google.com/firestore) に移動します。
+
+2. 「データ」をクリックします。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore06.png)
 
@@ -1209,37 +1219,38 @@ View the results in Firestore
 curl --location -g --request DELETE $ORDER_SERVICE_URL/order/${ORDER_NUMBER}
 ```
 
-### View results
-Navigate to the Firestore console
+### 結果を見る
 
-1. Navigate to the [Firestore console](https://console.cloud.google.com/firestore)
+Firestore で結果を表示する
 
-2. Click on Data
+1. [Firestore コンソール](https://console.cloud.google.com/firestore) に移動します。
+
+2. 「データ」をクリックします。
 
 ![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore07.png)
 
-> Document 46429 has been deleted, but the orders collections remain.
+> ドキュメント 46429 は削除されましたが、注文のコレクションは残ります。
 
-# 11. Congratulations!
+# 11. おめでとうございます!
 
-Congratulations, you finished the lab!
+おめでとうございます、こちらでハンズオンは終了です!
 
-What's next:
-Explore other Cymbal Eats codelabs:
+次のステップ:
+Cymbal Eats コードラボは他にもありますのでぜひトライしてください。:
 
-- [Triggering Cloud Workflows with Eventarc](https://codelabs.developers.google.com/eventarc-workflows-cloud-run)
-- [Triggering Event Processing from Cloud Storage](https://codelabs.developers.google.com/triggering-cloud-functions-from-cloud-storage)
-- [Connecting to Private CloudSQL from Cloud Run](https://codelabs.developers.google.com/connecting-to-private-cloudsql-from-cloud-run)
-- [Secure Serverless Application with Identity Aware Proxy (IAP)](https://codelabs.developers.google.com/secure-serverless-application-with-identity-aware-proxy)
-- [Triggering Cloud Run Jobs with Cloud Scheduler](https://codelabs.developers.google.com/cloud-run-jobs-and-cloud-scheduler)
-- [Securely Deploying to Cloud Run](https://codelabs.developers.google.com/secure-cloud-run-deployment)
-- [Securing Cloud Run Ingress Traffic](https://codelabs.developers.google.com/cloud-run-ingress-deployment)
-- [Connecting to private AlloyDB from GKE Autopilot](https://codelabs.developers.google.com/connecting-to-private-alloydb-from-gke-autopilot)
+- [Eventarc を使用したクラウド ワークフローのトリガー](https://codelabs.developers.google.com/eventarc-workflows-cloud-run)
+- [クラウド ストレージからのイベント処理のトリガー](https://codelabs.developers.google.com/triggering-cloud-functions-from-cloud-storage)
+- [Cloud Run からプライベート CloudSQL への接続](https://codelabs.developers.google.com/connecting-to-private-cloudsql-from-cloud-run)
+- [Identity Aware Proxy (IAP) を使用した安全なサーバーレス アプリケーション](https://codelabs.developers.google.com/secure-serverless-application-with-identity-aware-proxy)
+- [Cloud Scheduler を使用した Cloud Run ジョブのトリガー](https://codelabs.developers.google.com/cloud-run-jobs-and-cloud-scheduler)
+- [Cloud Run への安全なデプロイ](https://codelabs.developers.google.com/secure-cloud-run-deployment)
+- [Cloud Run Ingress トラフィックの保護](https://codelabs.developers.google.com/cloud-run-ingress-deployment)
+- [GKE Autopilot からプライベート AlloyDB への接続](https://codelabs.developers.google.com/connecting-to-private-alloydb-from-gke-autopilot)
 
-## Clean up
+## クリーンアップ
 
-To avoid incurring charges to your Google Cloud account for the resources used in this tutorial, either delete the project that contains the resources, or keep the project and delete the individual resources.
+このチュートリアルで使用するリソースに対して Google Cloud アカウントに料金が発生しないようにするには、リソースを含むプロジェクトを削除するか、プロジェクトを保持して個々のリソースを削除します。
 
-### Deleting the project
+### プロジェクトの削除
 
-The easiest way to eliminate billing is to delete the project that you created for the tutorial.
+不要な課金をなくす最も簡単な方法は、チュートリアル用に作成したプロジェクトを削除することです。
