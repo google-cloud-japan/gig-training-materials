@@ -72,11 +72,11 @@ teachme tutorial.md
 
 ## Cloud Run 上の Node.js アプリケーションを Cloud SQL for PostgreSQL データベースに接続する
 
-## 1. **概要**
+### 1. **概要**
 
 [Cloud SQL Node.js コネクタ](https://github.com/GoogleCloudPlatform/cloud-sql-nodejs-connector#readme) は、 Node.js アプリケーションを Cloud SQL データベースに接続する最も簡単かつセキュアに接続する方法です。また、 [Cloud Run](https://cloud.google.com/run) は、 HTTP リクエストで呼び出すことが出来、ステートレスなコンテナを動かすことを可能にするフルマネージドなサーバーレスプラットフォームです。このラボでは、 Cloud Run 上の Node.js アプリケーションを Cloud SQL for PostgreSQL にサービスアカウントと IAM 認証を使ってセキュアに接続する方法を試します。
 
-### **目的**
+#### **目的**
 
 このハンズオンでは、次の内容を実行します。
 
@@ -84,7 +84,7 @@ teachme tutorial.md
 - Node.js アプリケーションを Cloud Run にデプロイします。
 - Cloud SQL Node.js コネクタライブラリを使ってアプリケーションをデータベースに接続します。
 
-### **前提条件**
+#### **前提条件**
 
 このハンズオンは、Cloud Console および Cloud Shell 環境の理解を前提としています。
 
@@ -337,13 +337,13 @@ gcloud projects delete ${GOOGLE_CLOUD_PROJECT}
 
 ---
 
-# Cloud Run からフルマネージドデータベース - Cloud Spanner & Cloud Firestore につなげよう
+## Cloud Run からフルマネージドデータベース - Cloud Spanner & Cloud Firestore につなげよう
 
-## 1. 概要
+### 1. 概要
 このセクションでは、サーバーレスデータベース (Spanner と Firestore) を Cloud Run で稼働しているアプリケーション (Go と Node.js) とつなげます。Cymbal Eats アプリケーションには、Cloud Run で実行されている複数のサービスが含まれています。
 このハンズオンでは、[Cloud Spanner](https://cloud.google.com/spanner) (リレーショナル データベース) と [Cloud Firestore](https://cloud.google.com/firestore) ( NoSQL ドキュメント データベース) を使用するようにサービスを構成します。 データ層とアプリケーション ランタイムにサーバーレス製品を利用すると、すべてのインフラストラクチャ管理を抽象化し、オーバーヘッドを気にせずにアプリケーションの構築に集中できます。
 
-## 2. このハンズオンで学べること
+### 2. このハンズオンで学べること
 このハンズオンでは以下について学習します:
 
 - Cloud Spanner
@@ -726,7 +726,7 @@ SELECT * FROM InventoryHistory WHERE ItemID=1
 
 Cloud Console には、クエリの実行プランが視覚的に表示されます。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-spanner-concept.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-spanner-concept.png)
 
 > 概念的には、実行計画は関係演算子のツリーです。 各演算子は入力から行を読み取り、出力行を生成します。 実行のルートが SQL クエリの結果として返されます。
 
@@ -854,7 +854,7 @@ Cloud コンソール の Metrics Explorer を使用して、データベース 
 
 4. [**グループ化**] フィールドで、データベース、optimizer_version、ステータスを選択します。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-metrics-explorer.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-metrics-explorer.png)
 
 
 ## 7. Firestore の作成と構成
@@ -863,7 +863,7 @@ Firestore は、自動スケーリング、高パフォーマンス、アプリ�
 
 以降のタスクでは、Firestore を利用した、注文サービス Cloud Run アプリケーションを作成する手順を説明します。 注文サービスは、注文を開始する前に、前のセクションで作成した在庫サービスを呼び出して、Spanner データベースにクエリを実行します。 このサービスにより、十分な在庫が存在し、注文に対応できることが保証されます。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore.png)
 
 
 ## 8. Firestore コンセプト
@@ -872,13 +872,13 @@ Firestore は、自動スケーリング、高パフォーマンス、アプリ�
 
 Firestore データベースは、コレクションとドキュメントで構成されます。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore02.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore02.png)
 
 #### ドキュメント
 
 各ドキュメントには、一連のキーと値のペアが含まれています。 Firestore は、小さなドキュメントの大規模なコレクションを保存するために最適化されています。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore03.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore03.png)
 
 > 上の例では、注文 ID ドキュメントに 4 つのキーと値のペアが含まれています。 キー orderItems には、キーと値のペアの配列が含まれます。
 
@@ -886,7 +886,7 @@ Firestore データベースは、コレクションとドキュメントで構�
 
 すべてのドキュメントをコレクションに保存する必要があります。 ドキュメントには、文字列のようなプリミティブなフィールドやリストのような複雑なオブジェクトを含む、サブコレクションとネストされたオブジェクトを含めることができます。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore04.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore04.png)
 
 > 上記の例では、注文 ID ドキュメントが注文コレクションに保存されています。
 
@@ -1175,7 +1175,7 @@ Firestore で結果を表示する
 
 2. 「データ」をクリックします。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore05.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore05.png)
 
 ### ドキュメントの更新
 
@@ -1210,7 +1210,7 @@ Firestore で結果を表示する
 
 2. 「データ」をクリックします。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore06.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore06.png)
 
 > When updating the NoSQL structure in Firestore using patch(), only the items which are passed in the call are updated.
 
@@ -1230,7 +1230,7 @@ Firestore で結果を表示する
 
 2. 「データ」をクリックします。
 
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/34-create-gig-7-2-contents/gig07-02/img/gig07_02-firestore07.png)
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig07-02/img/gig07_02-firestore07.png)
 
 > ドキュメント 46429 は削除されましたが、注文のコレクションは残ります。
 
