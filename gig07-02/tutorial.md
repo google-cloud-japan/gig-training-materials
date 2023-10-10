@@ -131,7 +131,7 @@ gcloud iam service-accounts create quickstart-service-account \
   --display-name="Quickstart Service Account"
 ```
 
-1. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud SQL クライアントの権限を割り当てます。
+2. `gcloud projects add-iam-policy-binding` コマンドを実行して、先ほど作成したサービスアカウントに Cloud SQL クライアントの権限を割り当てます。
 
 ```bash
 gcloud projects add-iam-policy-binding ${GOOGLE_CLOUD_PROJECT} \
@@ -335,7 +335,6 @@ gcloud projects delete ${GOOGLE_CLOUD_PROJECT}
 
 おつかれさまでした。
 
----
 
 ## Cloud Run からフルマネージドデータベース - Cloud Spanner & Cloud Firestore につなげよう
 
