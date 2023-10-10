@@ -252,14 +252,14 @@ const {Pool} = pg;
 
 const connector = new Connector();
 const clientOpts = await connector.getOptions({
-    instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
-    authType: 'IAM'
+  instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
+  authType: 'IAM'
 });
 
 const pool = new Pool({
-    ...clientOpts,
-    user: process.env.DB_USER,
-    database: process.env.DB_NAME
+  ...clientOpts,
+  user: process.env.DB_USER,
+  database: process.env.DB_NAME
 });
 
 const app = express();
@@ -379,14 +379,14 @@ export SPANNER_CONNECTION_STRING=projects/$PROJECT_ID/instances/$SPANNER_INSTANC
 
 ```bash
 gcloud services enable \
-     compute.googleapis.com \
-     spanner.googleapis.com \
-     run.googleapis.com \
-     cloudbuild.googleapis.com \
-     artifactregistry.googleapis.com \
-     firestore.googleapis.com \
-     appengine.googleapis.com \
-     artifactregistry.googleapis.com
+  compute.googleapis.com \
+  spanner.googleapis.com \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com \
+  firestore.googleapis.com \
+  appengine.googleapis.com \
+  artifactregistry.googleapis.com
 ```
 
 3. リポジトリのクローン
@@ -584,9 +584,9 @@ Spanner データベースのデータを挿入、更新、削除するには、
 m := []*spanner.Mutation{}
 
 m = append(m, spanner.Insert(
-        "inventoryHistory",
-         inventoryHistoryColumns,
-        []interface{}{uuid.New().String(), element.ItemID, element.InventoryChange, time.Now()}))
+  "inventoryHistory",
+  inventoryHistoryColumns,
+  []interface{}{uuid.New().String(), element.ItemID, element.InventoryChange, time.Now()}))
 ```
 
 このコードスニペットは、在庫履歴テーブルに新しい行を挿入しています。
@@ -604,12 +604,12 @@ Cloud Run では、1 つのコマンドでコードを自動的にビルド、�
 
 ```bash
 gcloud run deploy inventory-service \
-    --source . \
-    --region $REGION \
-    --update-env-vars SPANNER_CONNECTION_STRING=$SPANNER_CONNECTION_STRING \
-    --allow-unauthenticated \
-    --project=$PROJECT_ID \
-    --quiet
+  --source . \
+  --region $REGION \
+  --update-env-vars SPANNER_CONNECTION_STRING=$SPANNER_CONNECTION_STRING \
+  --allow-unauthenticated \
+  --project=$PROJECT_ID \
+  --quiet
 ```
 
 Example output
@@ -641,12 +641,10 @@ Cloud Shell で次のコマンドを入力します。
 POST_URL=$INVENTORY_SERVICE_URL/updateInventoryItem
 curl -i -X POST ${POST_URL} \
 --header 'Content-Type: application/json' \
---data-raw '[
-    {
-        "itemID": 1,
-        "inventoryChange": 5
-    }
-]'
+--data-raw '[{
+  "itemID": 1,
+  "inventoryChange": 5
+}]'
 ```
 
 Example output
@@ -1038,15 +1036,15 @@ Cloud Firestore にデータを書き込む方法はいくつかあります:
 ```javascript
 const orderDoc = db.doc(`orders/123`);
 await orderDoc.set({
-    orderNumber: 123,
-    name: Anne,
-    address: 555 Bright Street,
-    city: Mountain View,
-    state: CA,
-    zip: 94043,
-    orderItems: [id: 1],
-    status: 'New'
-  });
+  orderNumber: 123,
+  name: Anne,
+  address: 555 Bright Street,
+  city: Mountain View,
+  state: CA,
+  zip: 94043,
+  orderItems: [id: 1],
+  status: 'New'
+});
 ```
 
 このコードは、ユーザーが生成したドキュメント ID 123 を指定してドキュメントを作成します。ユーザーに代わって Firestore に ID を生成させるには、`add()` または `create()` メソッドを使用します。
@@ -1140,17 +1138,17 @@ ORDER_SERVICE_URL=$(gcloud run services describe order-service \
 curl --request POST $ORDER_SERVICE_URL/order \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "name": "Jane Doe",
-         "email": "Jane.Doe-cymbaleats@gmail.com",
-    "address": "123 Maple",
-    "city": "Buffalo",
-    "state": "NY",
-    "zip": "12346",
-    "orderItems": [
-        {
-            "id": 1
-        }
-    ]
+  "name": "Jane Doe",
+  "email": "Jane.Doe-cymbaleats@gmail.com",
+  "address": "123 Maple",
+  "city": "Buffalo",
+  "state": "NY",
+  "zip": "12346",
+  "orderItems": [
+    {
+      "id": 1
+    }
+  ]
 }'
 ```
 
@@ -1186,12 +1184,10 @@ Firestore で結果を表示する
 curl --location -g --request PATCH $ORDER_SERVICE_URL/order/${ORDER_NUMBER} \
 --header 'Content-Type: application/json' \
 --data-raw '{
-"orderItems": [
-        {
-            "id": 1,
-            "quantity": 1
-        }
-    ]
+"orderItems": [{
+  "id": 1,
+  "quantity": 1
+  }]
 }'
 ```
 
