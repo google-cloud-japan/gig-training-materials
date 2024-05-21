@@ -1136,19 +1136,7 @@ ORDER_SERVICE_URL=$(gcloud run services describe order-service \
 ```bash
 curl --request POST $ORDER_SERVICE_URL/order \
 --header 'Content-Type: application/json' \
---data-raw '{
-  "name": "Jane Doe",
-  "email": "Jane.Doe-cymbaleats@gmail.com",
-  "address": "123 Maple",
-  "city": "Buffalo",
-  "state": "NY",
-  "zip": "12346",
-  "orderItems": [
-    {
-      "id": 1
-    }
-  ]
-}'
+--data-raw '{"name": "Jane Doe","email": "Jane.Doe-cymbaleats@gmail.com","address": "123 Maple","city": "Buffalo","state": "NY","zip": "12346","orderItems": [{"id": 1}]}'
 ```
 
 Example output
