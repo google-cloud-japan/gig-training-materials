@@ -640,10 +640,7 @@ Cloud Shell で次のコマンドを入力します。
 POST_URL=$INVENTORY_SERVICE_URL/updateInventoryItem
 curl -i -X POST ${POST_URL} \
 --header 'Content-Type: application/json' \
---data-raw '[{
-  "itemID": 1,
-  "inventoryChange": 5
-}]'
+--data-raw '[{"itemID": 1,"inventoryChange": 5}]'
 ```
 
 Example output
@@ -1170,12 +1167,7 @@ Firestore で結果を表示する
 ```bash
 curl --location -g --request PATCH $ORDER_SERVICE_URL/order/${ORDER_NUMBER} \
 --header 'Content-Type: application/json' \
---data-raw '{
-"orderItems": [{
-  "id": 1,
-  "quantity": 1
-  }]
-}'
+--data-raw '{"orderItems": [{"id": 1,"quantity": 1}]}'
 ```
 
 Example output
