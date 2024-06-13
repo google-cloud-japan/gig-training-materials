@@ -33,6 +33,12 @@ metadata:
 description: Cloud Run development service
 run:
   location: projects/PROJECT_ID/locations/us-central1
+executionConfigs:
+  - usages:
+      - RENDER
+      - DEPLOY
+      - VERIFY
+    serviceAccount: deployer@PROJECT_ID.iam.gserviceaccount.com
 ---
 
 apiVersion: deploy.cloud.google.com/v1
@@ -43,6 +49,13 @@ description: Cloud Run production service
 requireApproval: true
 run:
   location: projects/PROJECT_ID/locations/us-central1
+executionConfigs:
+  - usages:
+      - RENDER
+      - DEPLOY
+      - VERIFY
+    serviceAccount: deployer@PROJECT_ID.iam.gserviceaccount.com
+
 # ---
 # apiVersion: deploy.cloud.google.com/v1
 # kind: Target
@@ -60,3 +73,9 @@ run:
 # description: Cloud Run production service
 # run:
 #   location: projects/PROJECT_ID/locations/asia-northeast1
+# executionConfigs:
+#   - usages:
+#       - RENDER
+#       - DEPLOY
+#       - VERIFY
+#     serviceAccount: deployer@PROJECT_ID.iam.gserviceaccount.com
