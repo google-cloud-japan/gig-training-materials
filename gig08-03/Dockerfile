@@ -1,5 +1,5 @@
 # Use base golang image from Docker Hub
-FROM golang:1.19-bullseye AS build
+FROM golang:1.22.4-bookworm AS build
 
 WORKDIR /hello-world
 
@@ -17,7 +17,7 @@ RUN echo "Go gcflags: ${SKAFFOLD_GO_GCFLAGS}"
 RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -mod=readonly -v -o /app
 
 # Now create separate deployment image
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/base-debian12
 
 # Definition of this variable is used by 'skaffold debug' to identify a golang binary.
 # Default behavior - a failure prints a stack trace for the current goroutine.
