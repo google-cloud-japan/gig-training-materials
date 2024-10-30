@@ -677,6 +677,105 @@ curl -X PUT -d '{"playerId":"afceaaab-54b3-4546-baba-319fc7b2b5b0","name": "test
 curl -X DELETE http://localhost:8080/players/afceaaab-54b3-4546-baba-319fc7b2b5b0
 ```
 
+## [演習] 7. Spannerへ接続するアプリケーションをCloud Runへデプロイする
+
+Cloud Shell上で実行しているGoで実装されたアプリケーションをCloud Runへデプロイして、実際に動くか検証してみましょう。
+
+```bash
+cd spanner
+gcloud run deploy --source . --set-env-vars "GOOGLE_CLOUD_PROJECT=$(gcloud config list project --format "value(core.project)")"
+```
+
+認証ありのリクエストのみ許可したいため、 `Allow unauthenticated invocations` は `n` とします。
+
+```bash
+Allow unauthenticated invocations to [spanner] (y/N)?  n
+```
+
+続いてCloud RunからSpannerのデータベースへの権限を設定します。
+
+```bash
+gcloud config set run/region asia-northeast1
+export PROJECT_ID=$(gcloud config get-value project)
+export SERVICE_ACCOUNT=$(gcloud run services describe spanner --format="value(spec.template.spec.serviceAccountName)")
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT" \
+  --role="roles/spanner.databaseUser"
+```
+
+curlで実際にリクエストしてみましょう。Cloud Runのページに行き、デプロイされたServiceの認証URLを取得して、 curl でリクエストしてみます。
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig09-02/img/7-1-1.png?raw=true)
+
+
+```shell
+# 例。 URLは書き換えてください。
+curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://spanner-1023654277775.asia-northeast1.run.app/players
+```
+
+無事新規登録が出来たら成功です！
+
+## [演習] 8. Spanner Full-text Search： Spannerで全文検索をしてみる
+
+Spannerでは、2024年10月7日から全文検索が可能となりました。全文検索を試してみましょう。
+
+Spanner Full-text Searchを行うためには、[トークナイズ](https://cloud.google.com/spanner/docs/full-text-search/tokenization)を行う必要があります。ここでは、 `TOKENIZE_FULLTEXT` と `TOKENIZE_NGRAMS` の違いを見ていきましょう。
+
+```sql
+SELECT DEBUG_TOKENLIST(TOKENIZE_FULLTEXT("東京都港区"));
+SELECT DEBUG_TOKENLIST(TOKENIZE_NGRAMS("東京都港区"));
+```
+
+続いて、実際のテーブルで検索をできるようにしていきましょう。
+
+```sql
+ALTER TABLE items ADD COLUMN name_tokens TOKENLIST AS (TOKENIZE_FULLTEXT(name, language_tag=>'ja')) HIDDEN;
+```
+
+インデックスを貼ることで効果的な検索を行う事が可能です。
+
+```sql
+CREATE SEARCH INDEX items_search ON items(name_tokens);
+```
+
+これでアイテム名で検索を行うことが可能となりました。実際にデータを登録してみましょう。
+
+```sql
+INSERT INTO items (item_id, name, price) VALUES
+(3, '鉄の剣', 1200),
+(4, '皮の盾', 800),
+(5, '魔法の杖', 3500),
+(6, '回復薬', 300),
+(7, '毒消し', 200),
+(8, '万能薬', 1000),
+(9, '爆弾', 500),
+(10, '弓矢', 1000),
+(11, '鋼の鎧', 5000),
+(12, '魔法の帽子', 2800),
+(13, '銀の指輪', 1500),
+(14, '金のネックレス', 10000),
+(15, '銀のネックレス', 8000),
+(16, '妖精の粉', 2000),
+(17, '魔法の薬', 15000),
+(18, 'オリハルコンの盾', 8000),
+(19, '賢者の石', 50000),
+(20, 'エリクサー', 9999)
+(21, '鉄の槍', 1500)
+(22, '鋼の剣', 3000)
+(23, 'オリハルコンの剣', 10000)
+(24, '魔法の剣', 5000)
+(25, '毒針', 500)
+(26, '麻痺針', 700)
+```
+
+これで次のように検索してみます。
+
+```sql
+SELECT * FROM players WHERE SEARCH(name_tokens, 'ネックレス');
+```
+
+これでックレスに関連したワードを検索して、取得出来ていることを確認できます。
+
 ## **Thank You!**
 
 以上で、今回の Cloud Spanner ハンズオンは完了です。
