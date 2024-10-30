@@ -706,10 +706,6 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
     --role=roles/cloudbuild.builds.builder
 ```
 
-```bash
-Allow unauthenticated invocations to [spanner] (y/N)?  n
-```
-
 デプロイが完了したら、curlで実際にリクエストしてみましょう。
 Cloud Runのページに行き、デプロイされたServiceの認証URLを取得して、 curl でリクエストしてみます。
 
