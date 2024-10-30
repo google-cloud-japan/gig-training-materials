@@ -154,7 +154,7 @@ pwd
 以下のようなパスが表示されると思います。
 
 ```
-/home/<あなたのユーザー名>/cloudshell_open/gig-training-materials/spanner
+/home/<あなたのユーザー名>/cloudshell_open/gig-training-materials/gig09-02
 ```
 
 過去に他の G.I.G. のハンズオンを同一環境で実施している場合、***gig-training-materials-0*** や ***gig-training-materials-1*** のように末尾に数字がついたディレクトリを、今回用のディレクトリとしている場合があります。誤って過去のハンズオンで使ったディレクトリを使ってしまわぬよう、**今いる今回利用してるディレクトリを覚えておいてください。**
@@ -681,9 +681,18 @@ curl -X DELETE http://localhost:8080/players/afceaaab-54b3-4546-baba-319fc7b2b5b
 
 Cloud Shell上で実行しているGoで実装されたアプリケーションをCloud Runへデプロイして、実際に動くか検証してみましょう。
 
+まず、gcloud run build コマンドの裏側で実行されるCloud Buildへの権限を付与しましょう。
+
+```bash
+export PROJECT_NUMBER=$(gcloud projects list --filter=$GOOGLE_CLOUD_PROJECT --format="value(PROJECT_NUMBER)")
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+    --member=serviceAccount:$PROJECT_NUMBER-compute@developer.gserviceaccount.com \
+    --role=roles/cloudbuild.builds.builder
+```
+
 ```bash
 cd spanner
-gcloud run deploy --source . --set-env-vars "GOOGLE_CLOUD_PROJECT=$(gcloud config list project --format "value(core.project)")"
+gcloud run deploy --source . --set-env-vars "GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT"
 ```
 
 認証ありのリクエストのみ許可したいため、 `Allow unauthenticated invocations` は `n` とします。
@@ -692,20 +701,33 @@ gcloud run deploy --source . --set-env-vars "GOOGLE_CLOUD_PROJECT=$(gcloud confi
 Allow unauthenticated invocations to [spanner] (y/N)?  n
 ```
 
-続いてCloud RunからSpannerのデータベースへの権限を設定します。
+デプロイが完了したら、curlで実際にリクエストしてみましょう。
+Cloud Runのページに行き、デプロイされたServiceの認証URLを取得して、 curl でリクエストしてみます。
+
+![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig09-02/img/7-1-1.png?raw=true)
+[オリジナル画像](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig09-02/img/7-1-1.png?raw=true)
+
+
+```shell
+# 例。 URLは書き換えてください。
+curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://spanner-1023654277775.asia-northeast1.run.app/players
+```
+
+この時点で実行したら、権限エラーとなっていることを確認できます。
+
+```
+spanner: code = "PermissionDenied", desc = "Caller is missing IAM permission spanner.sessions.create on resource projects/spanner-demo-440204/instances/dev-instance/databases/player-db."
+```
+
+Cloud RunからSpannerのデータベースへの権限を設定していきましょう。
 
 ```bash
-gcloud config set run/region asia-northeast1
-export PROJECT_ID=$(gcloud config get-value project)
 export SERVICE_ACCOUNT=$(gcloud run services describe spanner --format="value(spec.template.spec.serviceAccountName)")
-gcloud projects add-iam-policy-binding $PROJECT_ID \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member="serviceAccount:$SERVICE_ACCOUNT" \
   --role="roles/spanner.databaseUser"
 ```
 
-curlで実際にリクエストしてみましょう。Cloud Runのページに行き、デプロイされたServiceの認証URLを取得して、 curl でリクエストしてみます。
-
-![](https://github.com/google-cloud-japan/gig-training-materials/blob/main/gig09-02/img/7-1-1.png?raw=true)
 
 
 ```shell
@@ -720,6 +742,14 @@ curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' -H "Authoriz
 Spannerでは、2024年10月7日から全文検索が可能となりました。全文検索を試してみましょう。
 
 Spanner Full-text Searchを行うためには、[トークナイズ](https://cloud.google.com/spanner/docs/full-text-search/tokenization)を行う必要があります。ここでは、 `TOKENIZE_FULLTEXT` と `TOKENIZE_NGRAMS` の違いを見ていきましょう。
+
+まずは spanner-cli を使用してSpannerに接続します。
+
+```shell
+spanner-cli -p $GOOGLE_CLOUD_PROJECT -i dev-instance -d player-db
+```
+
+下記クエリを実行して、トークナイズの違いを確認してみましょう。
 
 ```sql
 SELECT DEBUG_TOKENLIST(TOKENIZE_FULLTEXT("東京都港区"));
@@ -759,19 +789,19 @@ INSERT INTO items (item_id, name, price) VALUES
 (17, '魔法の薬', 15000),
 (18, 'オリハルコンの盾', 8000),
 (19, '賢者の石', 50000),
-(20, 'エリクサー', 9999)
-(21, '鉄の槍', 1500)
-(22, '鋼の剣', 3000)
-(23, 'オリハルコンの剣', 10000)
-(24, '魔法の剣', 5000)
-(25, '毒針', 500)
-(26, '麻痺針', 700)
+(20, 'エリクサー', 9999),
+(21, '鉄の槍', 1500),
+(22, '鋼の剣', 3000),
+(23, 'オリハルコンの剣', 10000),
+(24, '魔法の剣', 5000),
+(25, '毒針', 500),
+(26, '麻痺針', 700);
 ```
 
 これで次のように検索してみます。
 
 ```sql
-SELECT * FROM players WHERE SEARCH(name_tokens, 'ネックレス');
+SELECT * FROM items WHERE SEARCH(name_tokens, 'ネックレス');
 ```
 
 これでックレスに関連したワードを検索して、取得出来ていることを確認できます。
