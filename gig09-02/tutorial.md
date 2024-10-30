@@ -130,6 +130,7 @@ Cloud Spanner インスタンスノード数を変更したい場合、編集画
 
 ```bash
 gcloud config set project {{project-id}}
+gcloud config set run/region asia-northeast1
 ```
 
 続いて、環境変数 `GOOGLE_CLOUD_PROJECT` に、各自で利用しているプロジェクトのIDを格納しておきます。以下のコマンドを、Cloud Shell のターミナルで実行してください。
@@ -681,21 +682,29 @@ curl -X DELETE http://localhost:8080/players/afceaaab-54b3-4546-baba-319fc7b2b5b
 
 Cloud Shell上で実行しているGoで実装されたアプリケーションをCloud Runへデプロイして、実際に動くか検証してみましょう。
 
-まず、gcloud run build コマンドの裏側で実行されるCloud Buildへの権限を付与しましょう。
-
-```bash
-export PROJECT_NUMBER=$(gcloud projects list --filter=$GOOGLE_CLOUD_PROJECT --format="value(PROJECT_NUMBER)")
-gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-    --member=serviceAccount:$PROJECT_NUMBER-compute@developer.gserviceaccount.com \
-    --role=roles/cloudbuild.builds.builder
-```
-
 ```bash
 cd spanner
+
 gcloud run deploy --source . --set-env-vars "GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT"
 ```
 
 認証ありのリクエストのみ許可したいため、 `Allow unauthenticated invocations` は `n` とします。
+
+次のうような、ServiceAccountの権限エラーになった場合は、デフォルトで使用されるサービスアカウントに権限を付与する必要があります。
+
+```text
+AccessDeniedException: 403 xxxxxxxxxxxx-compute@developer.gserviceaccount.com does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).
+ERROR
+ERROR: error fetching storage source: generic::unknown: retry budget exhausted (3 attempts): fetching gcs source: fetching object from gcs: source fetch container exited with non-zero status: 1
+```
+
+```bash
+export PROJECT_NUMBER=$(gcloud projects list --filter=$GOOGLE_CLOUD_PROJECT --format="value(PROJECT_NUMBER)")
+
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+    --member=serviceAccount:$PROJECT_NUMBER-compute@developer.gserviceaccount.com \
+    --role=roles/cloudbuild.builds.builder
+```
 
 ```bash
 Allow unauthenticated invocations to [spanner] (y/N)?  n
@@ -710,7 +719,7 @@ Cloud Runのページに行き、デプロイされたServiceの認証URLを取�
 
 ```shell
 # 例。 URLは書き換えてください。
-curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://spanner-1023654277775.asia-northeast1.run.app/players
+curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://spanner-1023654277775.asia-northeast1.run.app/players
 ```
 
 この時点で実行したら、権限エラーとなっていることを確認できます。
@@ -723,12 +732,11 @@ Cloud RunからSpannerのデータベースへの権限を設定していきま�
 
 ```bash
 export SERVICE_ACCOUNT=$(gcloud run services describe spanner --format="value(spec.template.spec.serviceAccountName)")
+
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member="serviceAccount:$SERVICE_ACCOUNT" \
   --role="roles/spanner.databaseUser"
 ```
-
-
 
 ```shell
 # 例。 URLは書き換えてください。
@@ -742,12 +750,6 @@ curl -X POST -d '{"name": "testPlayer1", "level": 1, "money": 100}' -H "Authoriz
 Spannerでは、2024年10月7日から全文検索が可能となりました。全文検索を試してみましょう。
 
 Spanner Full-text Searchを行うためには、[トークナイズ](https://cloud.google.com/spanner/docs/full-text-search/tokenization)を行う必要があります。ここでは、 `TOKENIZE_FULLTEXT` と `TOKENIZE_NGRAMS` の違いを見ていきましょう。
-
-まずは spanner-cli を使用してSpannerに接続します。
-
-```shell
-spanner-cli -p $GOOGLE_CLOUD_PROJECT -i dev-instance -d player-db
-```
 
 下記クエリを実行して、トークナイズの違いを確認してみましょう。
 
