@@ -1,0 +1,37 @@
+substitutions:
+  _REGION: us-central1
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build container image'
+  dir: 'gig08-03'
+  args: ['build', '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/cicd-sample-repo/sample-image:${COMMIT_SHA}', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push container image to Artifact Registry'
+  dir: 'gig08-03'
+  args: ['push', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/cicd-sample-repo/sample-image:${COMMIT_SHA}']
+- name: 'google/cloud-sdk:slim'
+  id: 'Apply Delivery Pipeline into Cloud Deploy'
+  entrypoint: 'sh'
+  dir: 'gig08-03'
+  args:
+  - -xe
+  - -c
+  - |
+    sed -i s/PROJECT_ID/${PROJECT_ID}/g clouddeploy.yaml
+    gcloud deploy apply --file clouddeploy.yaml --project ${PROJECT_ID} --region ${_REGION}
+- name: 'google/cloud-sdk:slim'
+  id: 'Create a release in Cloud Deploy'
+  entrypoint: 'sh'
+  dir: 'gig08-03'
+  args:
+  - -xe
+  - -c
+  - |
+    gcloud deploy releases create rel-${SHORT_SHA} \
+                        --project ${PROJECT_ID} \
+                        --region ${_REGION} \
+                        --delivery-pipeline cicd-sample \
+                        --images=my-app-image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/cicd-sample-repo/sample-image:${COMMIT_SHA}
+timeout: 3600s
+options:
+  logging: CLOUD_LOGGING_ONLY

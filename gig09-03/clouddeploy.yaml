@@ -1,0 +1,81 @@
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: cicd-sample
+description: main application pipeline
+serialPipeline:
+  stages:
+  - targetId: run-qsdev
+    profiles: [dev]
+    # strategy:
+    #   standard:
+    #     verify: true
+  - targetId: run-qsprod
+    profiles: [prod]
+  # multi target
+  # - targetId: run-qsprod-multi
+  #   profiles: [prod]
+  #   ## canary deployment
+  #   strategy:
+  #     canary:
+  #       runtimeConfig:
+  #         cloudRun:
+  #           automaticTrafficControl: true
+  #       canaryDeployment:
+  #         percentages: [10, 25, 50]
+  #         verify: false
+---
+
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: run-qsdev
+description: Cloud Run development service
+run:
+  location: projects/PROJECT_ID/locations/us-central1
+executionConfigs:
+  - usages:
+      - RENDER
+      - DEPLOY
+      - VERIFY
+    serviceAccount: deployer@PROJECT_ID.iam.gserviceaccount.com
+---
+
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: run-qsprod
+description: Cloud Run production service
+requireApproval: true
+run:
+  location: projects/PROJECT_ID/locations/us-central1
+executionConfigs:
+  - usages:
+      - RENDER
+      - DEPLOY
+      - VERIFY
+    serviceAccount: deployer@PROJECT_ID.iam.gserviceaccount.com
+
+# ---
+# apiVersion: deploy.cloud.google.com/v1
+# kind: Target
+# metadata:
+#   name: run-qsprod-multi
+# description: production
+# multiTarget:
+#   targetIds: [run-qsprod, run-qsprod-tok]
+
+# ---
+# apiVersion: deploy.cloud.google.com/v1
+# kind: Target
+# metadata:
+#   name: run-qsprod-tok
+# description: Cloud Run production service
+# run:
+#   location: projects/PROJECT_ID/locations/asia-northeast1
+# executionConfigs:
+#   - usages:
+#       - RENDER
+#       - DEPLOY
+#       - VERIFY
+#     serviceAccount: deployer@PROJECT_ID.iam.gserviceaccount.com
