@@ -67,7 +67,7 @@
 
 次の図に、このチュートリアルで使用するリソースを示します。
 
-![](https://raw.githubusercontent.com/google-cloud-japan/gig-training-materials/main/gig08-03/img/diagram.png)
+![](https://raw.githubusercontent.com/google-cloud-japan/gig-training-materials/main/gig09-03/img/diagram.png)
 
 このパイプラインを構成する 3 つの主要コンポーネントは次のとおりです。
 
@@ -260,7 +260,7 @@ gcloud config set project $PROJECT_ID
 1. ディレクトリを移動する
 
     ```sh
-    cd ~/cloudshell_open/gig-training-materials/gig08-03
+    cd ~/cloudshell_open/gig-training-materials/gig09-03
     ```
 
 このソース リポジトリには、CI / CD パイプラインに必要な Cloud Build ファイルと Cloud Deploy ファイルが含まれています。
@@ -331,7 +331,7 @@ gcloud builds triggers create cloud-source-repositories \
     --name="cicd-sample-main" \
     --repo="cicd-sample" \
     --branch-pattern="main" \
-    --build-config="gig08-03/cloudbuild.yaml" \
+    --build-config="gig09-03/cloudbuild.yaml" \
     --service-account="projects/$PROJECT_ID/serviceAccounts/builder@$PROJECT_ID.iam.gserviceaccount.com"
 ```
 
