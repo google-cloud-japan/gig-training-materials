@@ -98,11 +98,10 @@
 
 Container & Kubernetes ネイティブ アプリケーションの継続的な開発を容易にするコマンドライン ツールである [Skaffold](https://skaffold.dev/) は、これらのコンポーネントの基盤であり、開発、ステージング、本番環境の間で構成を共有できます。
 
-元となるアプリケーションのソースコードは GitHub にあります。このチュートリアルでは、このリポジトリのクローンを Cloud Source Repositories に作成して、CI / CD パイプラインに接続します。
+元となるアプリケーションのソースコードは GitHub にあります。
 
 このチュートリアルでは、システムのほとんどのコンポーネントで Google Cloud プロダクトを使用し、Skaffold でシステムを統合しています。Skaffold はオープンソースであるため、同様に Google Cloud、社内コンポーネント、サードパーティ コンポーネントを組み合わせることができます。このソリューションはモジュール方式を採用しているため、開発パイプラインとデプロイ パイプラインの一部として段階的に導入できます。
 
-**注意**: このチュートリアルでは Git リポジトリとして Cloud Source Repositories を利用していますが、実際の開発では [GitHub, GitLab, Bitbucket を Cloud Build に接続](https://cloud.google.com/build/docs/repositories)して利用してください。
 
 ## **目標**
 
@@ -110,7 +109,7 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 
 - CI パイプラインと CD パイプラインを設定します。この設定には次のものが含まれます。
   - 必要な権限を設定する。
-  - ソースコード用のリポジトリを Cloud Source Repositories に作成する。
+  - Cloud Build でリポジトリ接続を追加する。
   - アプリケーション コンテナ用のリポジトリを Artifact Registry に作成する。
   - メインの GitHub リポジトリに Cloud Build トリガーを作成する。
   - Cloud Deploy デリバリー パイプラインとターゲットを作成する。ターゲットはステージング環境と本番環境です。
@@ -132,8 +131,8 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 [Cloud Deploy](https://cloud.google.com/deploy/pricing?hl=ja)
 [Artifact Registry](https://cloud.google.com/artifact-registry/pricing?hl=ja)
 [Cloud Run](https://cloud.google.com/run/pricing?hl=ja)
-[Cloud Source Repositories](https://cloud.google.com/source-repositories/pricing?hl=ja)
-[Cloud Storage](https://cloud.google.com/storage/pricing?hl=ja)
+[Cloud Storage](https://cloud.google.com/storage/pricing?hl=ja)  
+
 [料金計算ツール](https://cloud.google.com/products/calculator?hl=ja)を使うと、予想使用量に基づいて費用の見積もりを生成できます。
 
 このチュートリアルを終了した後、作成したリソースを削除すると、それ以上の請求は発生しません。詳細については、[クリーンアップ](https://cloud.google.com/deploy/docs/deploy-app-run?hl=ja#clean-up)をご覧ください。
@@ -149,9 +148,9 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 
 2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
 
-3. Artifact Registry, Cloud Build, Cloud Deploy, Cloud Source Repositories, Cloud Run, Resource Manager, Service Networking API を有効にします。
+3. Artifact Registry, Cloud Build, Cloud Deploy, Cloud Run, Resource Manager, Service Networking API を有効にします。
 
-    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Csourcerepo.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja)
+    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja)
 
 4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
 
@@ -164,8 +163,8 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 このセクションでは、アプリケーション オペレーターとして、次の処理を行います。
 
 - 必要な権限を設定する。
-- ソース リポジトリのクローンを作成する
-- ソースコード用のリポジトリを Cloud Source Repositories に作成する。
+- ソース リポジトリのクローンを作成する。
+- Cloud Build でリポジトリ接続を追加する。
 - コンテナ アプリケーション用のリポジトリを Artifact Registry に作成します。
 
 ### **権限を設定する**
@@ -260,35 +259,32 @@ gcloud config set project $PROJECT_ID
 1. ディレクトリを移動する
 
     ```sh
-    cd ~/cloudshell_open/gig-training-materials/gig09-03
+    cd ~/gig-training-materials/gig09-03
     ```
 
 このソース リポジトリには、CI / CD パイプラインに必要な Cloud Build ファイルと Cloud Deploy ファイルが含まれています。
 
-### **ソースコード用のリポジトリとコンテナ用のリポジトリを作成する**
+### **ソースコード用のリポジトリ接続とコンテナ用のリポジトリを作成する**
 
-このセクションでは、ソースコード用のリポジトリを Cloud Source Repositories に設定し、CI / CD パイプラインによってビルドされたコンテナを格納する Artifact Registry にリポジトリを設定します。
+このセクションでは、ソースコード用のリポジトリ接続、リポジトリを Cloud Build に設定し、CI / CD パイプラインによってビルドされたコンテナを格納する Artifact Registry にリポジトリを設定します。
 
-1. Cloud Source Repositories で、ソースコードを格納するリポジトリを作成し、CI / CD プロセスにリンクします。
-
-    ```sh
-    gcloud source repos create cicd-sample
-    ```
-
-2. Git のリモートリポジトリを Cloud Source Repositories に設定します。
+1. Cloud Build で GitHub ホストとのリポジトリ接続を作成します。
 
     ```sh
-    git config --global credential.https://source.developers.google.com.helper gcloud.sh
-    git remote add google https://source.developers.google.com/p/$(gcloud config get-value project)/r/cicd-sample
+    gcloud builds connections create github conn-gig-training-materials --region=us-central1
     ```
 
-3. ソースコードをリポジトリに push します。
+2. Clou Build で リポジトリを追加します。
+
+`<GITHUB_ACCOUNT>` は、ご自身のアカウント名に置き換えてください。
 
     ```sh
-    git push --all google
+    gcloud builds repositories create gig-training-materials \
+      --remote-uri=https://github.com/${GITHUB_ACCOUNT}/gig-training-materials.git \
+      --connection=conn-gig-training-materials --region=us-central1
     ```
 
-4. Artifact Registry にイメージ リポジトリを作成します。
+3. Artifact Registry にイメージ リポジトリを作成します。
 
     ```sh
     gcloud artifacts repositories create cicd-sample-repo \
@@ -296,7 +292,7 @@ gcloud config set project $PROJECT_ID
         --location us-central1
     ```
 
-これで、Cloud Source Repositories にソースコードのリポジトリが作成され、Artifact Registry にアプリケーション コンテナのリポジトリが作成されました。Cloud Source Repositories リポジトリを使用すると、ソースコードのクローンを作成して CI / CD パイプラインに接続できます。
+これで、Cloud Build にリポジトリ接続が作成され、Artifact Registry にアプリケーション コンテナのリポジトリが作成されました。
 
 ## **CI / CD パイプラインを構成する**
 
@@ -327,15 +323,15 @@ CI / CD パイプラインの手順は、このファイルで定義されてい
 ### 2. Cloud Build トリガーを作成する
 
 ```sh
-gcloud builds triggers create cloud-source-repositories \
+gcloud builds triggers create github \
     --name="cicd-sample-main" \
-    --repo="cicd-sample" \
+    --repository="projects/$PROJECT_ID/locations/us-central1/connections/conn-gig-training-materials/repositories/gig-training-materials" \
     --branch-pattern="main" \
     --build-config="gig09-03/cloudbuild.yaml" \
     --service-account="projects/$PROJECT_ID/serviceAccounts/builder@$PROJECT_ID.iam.gserviceaccount.com"
 ```
 
-このトリガーは、Cloud Build にソース リポジトリを監視するように指示し、`cloudbuild.yaml` ファイルを使用してリポジトリに対する変更に対応します。このトリガーは、メインブランチに新しい push があるたびに呼び出されます。
+このトリガーは、Cloud Build に GitHub 上のリポジトリを監視するように指示し、`cloudbuild.yaml` ファイルを使用してリポジトリに対する変更に対応します。このトリガーは、メインブランチに新しい push があるたびに呼び出されます。
 
 ### 3. ビルドがないことを確認
 [Cloud Build](https://console.cloud.google.com/cloud-build/dashboard?hl=ja) に移動して、アプリケーションのビルドがないことを確認します。
@@ -452,11 +448,10 @@ git commit -m "Hello GIG"
 
 このセクションでは、Cloud Build トリガーを呼び出して CI/CD パイプラインを開始します。このトリガーは、変更がメイン リポジトリに commit されるたびに呼び出されます。手動トリガーを使用して CI システムを起動することもできます。
 
-#### 1. Cloud Shell エディタで、次のコマンドを実行してビルドをトリガーします。
+#### 1. GitHub 上で変更を反映し、ビルドをトリガーします。
 
-```sh
-git push google
-```
+本来は `$git push` で変更を反映することでビルドをトリガーしますが、今回は簡単のため、GitHub 上の適当なファイルを編集、保存することで代替します。  
+`gig-training-materials/gig09-03/index.html` のファイルを開き「鉛筆マーク」からファイルを編集し、保存してください。
 
 このビルドには、`cicd-sample` に加えた変更が含まれています。
 
@@ -669,11 +664,20 @@ verify:
 gcloud deploy delivery-pipelines delete cicd-sample --region=us-central1 --force
 ```
 
-#### 2. Cloud Build トリガーを削除します。
+#### 2. Cloud Build トリガー、リポジトリ接続、リポジトリを削除します。
 
 ```sh
 gcloud builds triggers delete cicd-sample-main
 ```
+
+```sh
+gcloud builds repositories delete gig-training-materials \
+    --connection=conn-gig-training-materials \
+    --region=us-central1
+gcloud builds connections delete conn-gig-training-materials \
+    --region=us-central1
+```
+
 
 #### 3. ステージング 環境と本番環境を削除します。
 
@@ -684,13 +688,7 @@ gcloud run services delete deploy-qs-dev --region=us-central1
 gcloud run services delete deploy-qs-prod --region=us-central1
 ```
 
-#### 4. Cloud Source Repositories でリポジトリを削除します。
-
-```sh
-gcloud source repos delete cicd-sample
-```
-
-#### 5. Artifact Registry のリポジトリを削除します。
+#### 4. Artifact Registry のリポジトリを削除します。
 
 ```sh
 gcloud artifacts repositories delete cicd-sample-repo \
