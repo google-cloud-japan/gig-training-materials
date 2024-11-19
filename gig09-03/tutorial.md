@@ -132,6 +132,7 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 [Artifact Registry](https://cloud.google.com/artifact-registry/pricing?hl=ja)
 [Cloud Run](https://cloud.google.com/run/pricing?hl=ja)
 [Cloud Storage](https://cloud.google.com/storage/pricing?hl=ja)  
+[Secret Manager](https://cloud.google.com/secret-manager/pricing?hl=ja)  
 
 [料金計算ツール](https://cloud.google.com/products/calculator?hl=ja)を使うと、予想使用量に基づいて費用の見積もりを生成できます。
 
@@ -148,9 +149,9 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 
 2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
 
-3. Artifact Registry, Cloud Build, Cloud Deploy, Cloud Run, Resource Manager, Service Networking API を有効にします。
+3. Artifact Registry, Cloud Build, Cloud Deploy, Cloud Run, Resource Manager, Service Networking API, Secret Manager を有効にします。
 
-    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja)
+    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com%2Csecretmanager.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja)
 
 4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
 
@@ -223,6 +224,19 @@ gcloud config set project $PROJECT_ID
     Cloud Build は、Cloud Deploy を呼び出すときに、別のサービス アカウント（`deployer@`）を使用してリリースを作成します。そのため、この権限が必要になります。
 
     この IAM ロールの詳細については、[iam.serviceAccountUser](https://cloud.google.com/compute/docs/access/iam?hl=ja#the_serviceaccountuser_role) ロールをご覧ください。
+
+  - Cloud Build P4SA (プロジェクトごとのサービスアカウント) に、Secret Manager の作成および読み取りに必要な権限を付与します。
+
+    ```sh
+    PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+        --member=serviceAccount:service-$PROJECT_NUMBER@gcp-sa-cloudbuild.iam.gserviceaccount.com \
+        --role="roles/secretmanager.admin"
+    ```
+
+    Cloud Build は、GitHub のリポジトリ接続を作成する際、GitHub の OAuth Token をSecret Manager に格納して使用します。
+
+    この IAM ロールの詳細については、[secretmanager.admin](https://cloud.google.com/secret-manager/docs/access-control?hl=ja) をご覧ください。
 
   - Cloud Deploy がジョブを実行するために必要なロールを付与します。
 
