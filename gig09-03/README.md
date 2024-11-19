@@ -7,6 +7,8 @@ export GITHUB_ACCOUNT=<GITHUB_ACCOUNT>
 ```sh
 cd ~
 git clone https://github.com/${GITHUB_ACCOUNT}/gig-training-materials.git
+cd ~/gig-training-materials/gig09-03
+teachme tutorial.md
 ```
 
 **This is not an officially supported Google product**.
