@@ -293,8 +293,12 @@ gcloud config set project $PROJECT_ID
 `<GITHUB_ACCOUNT>` は、ご自身のアカウント名に置き換えてください。
 
     ```sh
+    export GITHUB_ACCOUNT=<GITHUB_ACCOUNT>
+    ```
+
+    ```sh
     gcloud builds repositories create gig-training-materials \
-      --remote-uri=https://github.com/${GITHUB_ACCOUNT}/gig-training-materials.git \
+      --remote-uri=https://github.com/$GITHUB_ACCOUNT/gig-training-materials.git \
       --connection=conn-gig-training-materials --region=us-central1
     ```
 
@@ -339,16 +343,17 @@ CI / CD パイプラインの手順は、このファイルで定義されてい
 ```sh
 gcloud builds triggers create github \
     --name="cicd-sample-main" \
-    --repository="projects/$PROJECT_ID/locations/us-central1/connections/conn-gig-training-materials/repositories/gig-training-materials" \
+    --repository="projects/$PROJECT_ID/locations/us-central1/connections/conn-gig-training-materials/repositories/$GITHUB_ACCOUNT-gig-training-materials" \
     --branch-pattern="main" \
     --build-config="gig09-03/cloudbuild.yaml" \
+    --region=us-central1 \
     --service-account="projects/$PROJECT_ID/serviceAccounts/builder@$PROJECT_ID.iam.gserviceaccount.com"
 ```
 
 このトリガーは、Cloud Build に GitHub 上のリポジトリを監視するように指示し、`cloudbuild.yaml` ファイルを使用してリポジトリに対する変更に対応します。このトリガーは、メインブランチに新しい push があるたびに呼び出されます。
 
 ### 3. ビルドがないことを確認
-[Cloud Build](https://console.cloud.google.com/cloud-build/dashboard?hl=ja) に移動して、アプリケーションのビルドがないことを確認します。
+[Cloud Build](https://console.cloud.google.com/cloud-build/dashboard?hl=ja) に移動して `us-central1` を選択し、アプリケーションのビルドがないことを確認します。
 
 これで CI パイプラインと CD パイプラインが設定され、リポジトリのメインブランチでトリガーが作成されました。
 
@@ -375,7 +380,7 @@ gcloud builds triggers create github \
 
 #### 2. エディタの上部に表示される選択肢から、**[Run on Cloud Run Emulator]** を選択します。
 
-ビルド設定のページが開くので、デフォルトのまま **[Run]** ボタンを選択すると、ソースコードがビルドされエミュレータ上で起動します。
+ビルド設定のページが開くので、Buildpacks で `gig09-03` を選択し、 **[Run]** ボタンを選択すると、ソースコードがビルドされエミュレータ上で起動します。
 
 [**出力**] タブには、Skaffold がアプリケーションをビルドしてデプロイする際の進行状況が表示されます。この処理には数分かかります。
 
