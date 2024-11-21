@@ -421,6 +421,9 @@ Cloud Code では、Cloud Run Emulator にデプロイされたアプリケー�
 
 ### コードを commit する
 
+※ 本ハンズオンにおいて、都合上、Cloud Shell の変更を GitHub に反映する手順をフォークしたリポジトリのファイルを編集することで代替します。
+※ 本セクションの以下のパートは参考情報としてご参照ください。
+
 アプリケーションに変更を加えたので、コードを commit します。
 [Terminal] にタブを切り替えてください。
 
@@ -466,8 +469,6 @@ git commit -m "Hello GIG"
 
 本来は `$git push` で変更を反映することでビルドをトリガーしますが、今回は簡単のため、GitHub 上の適当なファイルを編集、保存することで代替します。  
 `gig-training-materials/gig09-03/index.html` のファイルを開き「鉛筆マーク」からファイルを編集し、保存してください。
-
-このビルドには、`cicd-sample` に加えた変更が含まれています。
 
 #### 2. [Cloud Build ダッシュボード](https://console.cloud.google.com/cloud-build/dashboard?hl=ja)に戻り、ビルドが作成されたことを確認します。
 
