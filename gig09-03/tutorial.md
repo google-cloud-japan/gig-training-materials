@@ -284,23 +284,18 @@ gcloud config set project $PROJECT_ID
 
 1. Cloud Build で GitHub ホストとのリポジトリ接続を作成します。
 
-    ```sh
-    gcloud builds connections create github conn-gig-training-materials --region=us-central1
-    ```
+    [Cloud Build リポジトリ](https://console.cloud.google.com/cloud-build/repositories/2nd-gen?hl=ja)の「ホスト接続を作成」からホスト接続を作成します。  
 
-2. Clou Build で リポジトリを追加します。
+    * us-central1 を選択
+    * 名前 "github-gig-training-materials" を入力
 
-`<GITHUB_ACCOUNT>` は、ご自身のアカウント名に置き換えてください。
+2. Cloud Build で リポジトリを追加します。
 
-    ```sh
-    export GITHUB_ACCOUNT=<GITHUB_ACCOUNT>
-    ```
+    [Cloud Build リポジトリ](https://console.cloud.google.com/cloud-build/repositories/2nd-gen?hl=ja)の「ホスト接続を作成」からホスト接続を作成します。  
 
-    ```sh
-    gcloud builds repositories create gig-training-materials \
-      --remote-uri=https://github.com/$GITHUB_ACCOUNT/gig-training-materials.git \
-      --connection=conn-gig-training-materials --region=us-central1
-    ```
+    * 接続 "github-gig-training-materials" を選択
+    * リポジトリ "<GITHUB_ACCOUNT_NAME>/gig-training-materials" を選択
+    * リポジトリ名 「生成済み」を選択
 
 3. Artifact Registry にイメージ リポジトリを作成します。
 
@@ -343,7 +338,7 @@ CI / CD パイプラインの手順は、このファイルで定義されてい
 ```sh
 gcloud builds triggers create github \
     --name="cicd-sample-main" \
-    --repository="projects/$PROJECT_ID/locations/us-central1/connections/conn-gig-training-materials/repositories/$GITHUB_ACCOUNT-gig-training-materials" \
+    --repository="projects/$PROJECT_ID/locations/us-central1/connections/github-gig-training-materials/repositories/$GITHUB_ACCOUNT-gig-training-materials" \
     --branch-pattern="main" \
     --build-config="gig09-03/cloudbuild.yaml" \
     --region=us-central1 \
@@ -691,9 +686,9 @@ gcloud builds triggers delete cicd-sample-main
 
 ```sh
 gcloud builds repositories delete gig-training-materials \
-    --connection=conn-gig-training-materials \
+    --connection=github-gig-training-materials \
     --region=us-central1
-gcloud builds connections delete conn-gig-training-materials \
+gcloud builds connections delete github-gig-training-materials \
     --region=us-central1
 ```
 
