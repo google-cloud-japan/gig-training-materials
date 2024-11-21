@@ -693,7 +693,6 @@ gcloud builds connections delete github-gig-training-materials \
     --region=us-central1
 ```
 
-
 #### 3. ステージング 環境と本番環境を削除します。
 
 ```sh
@@ -708,6 +707,12 @@ gcloud run services delete deploy-qs-prod --region=us-central1
 ```sh
 gcloud artifacts repositories delete cicd-sample-repo \
     --location us-central1
+```
+
+#### 5. Secret Manager のシークレットを削除します。
+
+```sh
+gcloud secrets delete projects/$PROJECT_NUMBER/secrets/github-gig-training-materials-github-oauthtoken-<文字列>
 ```
 
 ## Congratulations
