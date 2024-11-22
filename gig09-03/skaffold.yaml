@@ -1,0 +1,22 @@
+apiVersion: skaffold/v4beta10
+kind: Config
+metadata:
+  name: deploy-run-quickstart
+profiles:
+- name: dev
+  manifests:
+    rawYaml:
+    - run-dev.yaml
+- name: prod
+  manifests:
+    rawYaml:
+    - run-prod.yaml
+deploy:
+  cloudrun: {}
+# verify:
+# - name: verify-content-test
+#   container:
+#     name: curl
+#     image: curlimages/curl
+#     command: ["sh"]
+#     args: ["-c", "curl --silent $CLOUD_RUN_SERVICE_URLS | grep GIG"]
