@@ -291,13 +291,14 @@ gcloud config set project $PROJECT_ID
 
 2. Cloud Build で リポジトリを追加します。
 
-    [Cloud Build リポジトリ](https://console.cloud.google.com/cloud-build/repositories/2nd-gen?hl=ja)の「ホスト接続を作成」からホスト接続を作成します。  
+    [Cloud Build リポジトリ](https://console.cloud.google.com/cloud-build/repositories/2nd-gen?hl=ja)の「リポジトリをリンク」からリポジトリのリンクを追加します。
+   もし、 `gig-training-materials` が選択できない場合は、ホスト接続の設定（右側ボタン）の「インストールを管理」から対象のリポジトリを選択してください。  
 
     * 接続 "github-gig-training-materials" を選択
     * リポジトリ "<GITHUB_ACCOUNT_NAME>/gig-training-materials" を選択
     * リポジトリ名 「生成済み」を選択
 
-3. Artifact Registry にイメージ リポジトリを作成します。
+4. Artifact Registry にイメージ リポジトリを作成します。
 
     ```sh
     gcloud artifacts repositories create cicd-sample-repo \
