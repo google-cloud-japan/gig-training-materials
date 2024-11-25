@@ -1,5 +1,7 @@
 # GCP Handson materials for GIG 09-03 (CI/CD on Google Cloud)
 
+以下の手順は、リポジトリをフォークして利用することを前提としています。
+
 ```sh
 export GITHUB_ACCOUNT=<GITHUB_ACCOUNT>
 ```
