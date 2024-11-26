@@ -295,7 +295,7 @@ gcloud config set project $PROJECT_ID
    もし、 `gig-training-materials` が選択できない場合は、ホスト接続の設定（右側ボタン）の「インストールを管理」から対象のリポジトリを選択してください。  
 
     * 接続 "github-gig-training-materials" を選択
-    * リポジトリ "<GITHUB_ACCOUNT_NAME>/gig-training-materials" を選択
+    * リポジトリ "<GITHUB_ACCOUNT>/gig-training-materials" を選択
     * リポジトリ名 「生成済み」を選択
 
 4. Artifact Registry にイメージ リポジトリを作成します。
@@ -335,6 +335,12 @@ CI / CD パイプラインの手順は、このファイルで定義されてい
 デリバリー パイプラインとターゲットは Cloud Deploy によって管理され、ソースコードから切り離されます。この分離により、アプリケーションのソースコードが変更されたときに配信パイプラインとターゲット ファイルを更新する必要がなくなります。
 
 ### 2. Cloud Build トリガーを作成する
+
+まず、環境変数に Github のアカウント名を設定します。  
+
+```sh
+export GITHUB_ACCOUNT=<GITHUB_ACCOUNT>
+```
 
 ```sh
 gcloud builds triggers create github \
