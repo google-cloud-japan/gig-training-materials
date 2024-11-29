@@ -149,9 +149,9 @@ Container & Kubernetes ネイティブ アプリケーションの継続的な�
 
 2. Cloud プロジェクトに対して課金が有効になっていることを確認します。詳しくは、[プロジェクトで課金が有効になっているかどうかを確認する方法](https://cloud.google.com/billing/docs/how-to/verify-billing-enabled?hl=ja)をご覧ください。
 
-3. Artifact Registry, Cloud Build, Cloud Deploy, Cloud Run, Resource Manager, Service Networking API, Secret Manager を有効にします。
+3. API を有効にします。
 
-    [API を有効にするリンク](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com%2Ccloudbuild.googleapis.com%2Cclouddeploy.googleapis.com%2Crun.googleapis.com%2C+cloudresourcemanager.googleapis.com%2Cservicenetworking.googleapis.com%2Csecretmanager.googleapis.com&%3Bredirect=https%3A%2F%2Fconsole.cloud.google.com&hl=ja)
+<walkthrough-enable-apis apis="artifactregistry.googleapis.com,cloudbuild.googleapis.com,clouddeploy.googleapis.com,run.googleapis.com,cloudresourcemanager.googleapis.com,servicenetworking.googleapis.com,secretmanager.googleapis.com"></walkthrough-enable-apis>
 
 4. Google Cloud コンソールで、「Cloud Shell をアクティブにする」をクリックします。
 
