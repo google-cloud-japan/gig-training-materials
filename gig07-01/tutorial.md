@@ -575,9 +575,9 @@ IP_PROTOCOL: TCP
 TARGET: lb-http-http-proxy
 ```
 
-4. ロードバランサーの IP アドレスのシェル変数を設定し、[IP_ADDRESS] を前の出力の値に置き換えます。
+4. ロードバランサーの IP アドレスのシェル変数を設定します。
 ```bash
-export LB_IP=[IP_ADDRESS]
+export LB_IP=$(gcloud compute forwarding-rules describe lb-http --global --format 'value(IPAddress)')
 ```
 
 5. ロードバランサーが完全にオンラインになるまで **1分** 待ちます。
