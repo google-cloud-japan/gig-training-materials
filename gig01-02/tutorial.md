@@ -145,7 +145,7 @@ gcloud services enable dataflow.googleapis.com \
 まずは、make bucket コマンドを実行して、GCS のバケットを作成します。
 
 ```bash
-gsutil mb -c regional -l us-central1 gs://{{project-id}}-gig2
+gcloud storage buckets create gs://{{project-id}}-gig2 --default-storage-class=regional --location=us-central1
 ```
 
 ### データのインポート
@@ -153,7 +153,7 @@ gsutil mb -c regional -l us-central1 gs://{{project-id}}-gig2
 Dataflow のサンプルデータを、バケットへコピーします。
 
 ```bash
-gsutil cp gs://spls/gsp290/data_files/head_usa_names.csv gs://{{project-id}}-gig2/data_files/
+gcloud storage cp gs://spls/gsp290/data_files/head_usa_names.csv gs://{{project-id}}-gig2/data_files/
 ```
 
 このようなデータが入っています。
@@ -289,7 +289,7 @@ python data_transformation_for_template.py --project={{project-id}} --runner=Dat
 
 以下のコマンドでも確認できます。
 ```bash
-gsutil ls gs://{{project-id}}-gig2/templates/DataTransformationTemplate
+gcloud storage ls gs://{{project-id}}-gig2/templates/DataTransformationTemplate
 ```
 
 ## Dataflow Job をテンプレートから実行する
@@ -400,5 +400,5 @@ bq rm lake_gig2
 
 GCS のバケット削除
 ```bash
-gsutil rm -r gs://{{project-id}}-gig2/
+gcloud storage rm --recursive gs://{{project-id}}-gig2/
 ```
