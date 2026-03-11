@@ -340,7 +340,7 @@ gcloud config set project $PROJECT_ID
 Cloud Build 用の Cloud Storage バケットを作成して `artifacts.json` ファイル(Skaffold によってビルドごとに生成されたアーティファクトを追跡)を保存します。
 
     ```sh
-    gsutil mb gs://$(gcloud config get-value project)-gceme-artifacts/
+    gcloud storage buckets create gs://$(gcloud config get-value project)-gceme-artifacts/
     ```
 
 トレースを簡単に行えるため、各ビルドの `artifacts.json` ファイルを 1 か所に保存することをおすすめします。これにより、トラブルシューティングが容易になります。
@@ -673,10 +673,10 @@ gcloud source repos delete cicd-sample
 #### 5. Cloud Storage バケットを削除します。
 
 ```sh
-gsutil rm -r gs://$(gcloud config get-value project)-gceme-artifacts/
+gcloud storage rm --recursive gs://$(gcloud config get-value project)-gceme-artifacts/
 ```
 ```sh
-gsutil rm -r gs://$(gcloud config get-value project)_clouddeploy/
+gcloud storage rm --recursive gs://$(gcloud config get-value project)_clouddeploy/
 ```
 
 #### 6. Artifact Registry のリポジトリを削除します。
