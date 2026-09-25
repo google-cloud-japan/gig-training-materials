@@ -24,7 +24,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -59,7 +58,9 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	client, err := firestore.NewClient(ctx, pid)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Failed to create firestore client: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	defer client.Close()
 
@@ -68,18 +69,18 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		u, err := getUserBody(r)
 		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("Failed to parse request body: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		// 書き込み
 		ref, _, err := client.Collection("users").Add(ctx, u)
 		if err != nil {
-			log.Fatalf("Failed adding data: %v", err)
+			log.Printf("Failed adding data: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		log.Print("success: id is %v", ref.ID)
+		log.Printf("success: id is %v", ref.ID)
 		fmt.Fprintf(w, "success: id is %v \n", ref.ID)
 		// それ以外のHTTPメソッド
 		// 取得処理
@@ -96,12 +97,15 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 				if err != nil {
-					log.Fatal(err)
+					log.Printf("Failed iterating users: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
 				}
 				var user Users
 				err = doc.DataTo(&user)
 				if err != nil {
-					log.Fatal(err)
+					log.Printf("Failed parsing user doc: %v", err)
+					continue
 				}
 				user.Id = doc.Ref.ID
 				log.Print(user)
@@ -144,7 +148,9 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 			var u Users
 			err = doc.DataTo(&u)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("Failed parsing user doc: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 			u.Id = doc.Ref.ID
 			json, err := json.Marshal(u)
@@ -157,16 +163,41 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// 更新処理
 	case http.MethodPut:
-		u, err := getUserBody(r)
-		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(http.StatusInternalServerError)
+		id := strings.TrimPrefix(r.URL.Path, "/firestore/")
+		if id == "/firestore" || id == "" {
+			http.Error(w, "User ID must be specified in the URL path (/firestore/{id})", http.StatusBadRequest)
 			return
 		}
 
-		_, err = client.Collection("users").Doc(u.Id).Set(ctx, u)
+		if !authorizeUser(r, id) {
+			http.Error(w, "Forbidden: unauthorized to modify this resource", http.StatusForbidden)
+			return
+		}
+
+		u, err := getUserBody(r)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("Failed to read body: %v", err)
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if u.Id != "" && u.Id != id {
+			http.Error(w, "Document ID in body does not match URL path", http.StatusBadRequest)
+			return
+		}
+		u.Id = id
+
+		docRef := client.Collection("users").Doc(id)
+		docSnap, err := docRef.Get(ctx)
+		if err != nil || !docSnap.Exists() {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+
+		_, err = docRef.Set(ctx, u, firestore.MergeAll)
+		if err != nil {
+			log.Printf("Failed to update user: %v", err)
+			http.Error(w, "Failed to update user", http.StatusInternalServerError)
 			return
 		}
 
@@ -174,6 +205,10 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 		// 削除処理
 	case http.MethodDelete:
 		id := strings.TrimPrefix(r.URL.Path, "/firestore/")
+		if id == "/firestore" || id == "" {
+			http.Error(w, "User ID must be specified in the URL path (/firestore/{id})", http.StatusBadRequest)
+			return
+		}
 		_, err := client.Collection("users").Doc(id).Delete(ctx)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -187,26 +222,27 @@ func firestoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Users struct {
-	Id    string `firestore:id, json:id`
-	Email string `firestore:email, json:email`
-	Name  string `firestore:name, json:name`
+	Id    string `firestore:"id" json:"id"`
+	Email string `firestore:"email" json:"email"`
+	Name  string `firestore:"name" json:"name"`
+}
+
+func authorizeUser(r *http.Request, targetID string) bool {
+	callerID := r.Header.Get("X-User-ID")
+	if callerID != "" && callerID != targetID {
+		return false
+	}
+	return true
 }
 
 func getUserBody(r *http.Request) (u Users, err error) {
-	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
+	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
 	if err != nil {
 		return u, err
 	}
+	defer r.Body.Close()
 
-	body := make([]byte, length)
-	length, err = r.Body.Read(body)
-	if err != nil && err != io.EOF {
-		return u, err
-	}
-
-	//parse json
-	err = json.Unmarshal(body[:length], &u)
-	if err != nil {
+	if err = json.Unmarshal(body, &u); err != nil {
 		return u, err
 	}
 	log.Print(u)
